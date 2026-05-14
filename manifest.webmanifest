@@ -1,0 +1,19 @@
+{
+  "name": "Ziresa Studio",
+  "short_name": "Ziresa",
+  "description": "Club inteligente de belleza para Nail Art, pestañas y cejas.",
+  "start_url": "index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fce4ec",
+  "theme_color": "#5c1a70",
+  "categories": ["beauty", "lifestyle", "productivity"],
+  "icons": [
+    {
+      "src": "assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

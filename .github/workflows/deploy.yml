@@ -22,3 +22,9 @@ jobs:
           server-dir: ${{ secrets.FTP_SERVER_DIR }}
           protocol: ftp
           port: 21
+          exclude: |
+            **/.git*
+            **/.git*/**
+            data/appointments.json
+            data/clients.json
+            data/finances.json

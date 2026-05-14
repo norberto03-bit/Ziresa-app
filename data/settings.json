@@ -1,5 +1,21 @@
 {
-  "business_name": "Ziresa Salon",
+  "business_name": "Ziresa Studio",
+  "public_app_url": "https://app.ziresa.mx",
+  "business_whatsapp": "",
+  "brand": {
+    "name": "Ziresa Studio",
+    "promise": "Belleza expresiva, segura e inclusiva para manos, mirada y estilo personal.",
+    "location": "Av Eugenio Garza Sada 6518-LOCAL 4, Cd Satelite, Monterrey",
+    "instagram": "https://www.instagram.com/",
+    "facebook": "https://www.facebook.com/",
+    "tiktok": "https://www.tiktok.com/",
+    "values": [
+      "Espacio seguro para mujeres y comunidad LGBT+",
+      "Diseños personalizados con memoria de estilo",
+      "Cuidado tecnico, higiene y atencion humana",
+      "Belleza sin moldes: cada persona decide como verse"
+    ]
+  },
   "default_schedule": {
     "1": [ "10:00", "11:00", "12:00", "15:00", "16:00", "17:00", "18:00" ],
     "2": [ "10:00", "11:00", "12:00", "15:00", "16:00", "17:00", "18:00" ],
@@ -11,7 +27,7 @@
   },
   "media": {
     "hero_image": "assets/hero.jpg",
-    "hero_title": "Empoderamos tu Belleza",
-    "hero_subtitle": "Reserva tu momento Ziresa"
+    "hero_title": "Ziresa Studio",
+    "hero_subtitle": "Tu club inteligente de Nail Art, lifting de pestañas y laminado de cejas."
   }
 }

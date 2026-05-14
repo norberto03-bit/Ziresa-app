@@ -27,6 +27,7 @@
         <li><a href="#" class="active" onclick="showTab('dashboard', this); loadStats();">Panel Principal</a></li>
         <li><a href="#" onclick="showTab('master-calendar', this); renderCalendar();">Master Calendar</a></li>
         <li><a href="#" onclick="showTab('clientes', this); loadClients();">Gestion de Clientes</a></li>
+        <li><a href="#" onclick="showTab('insights', this); loadInsights();">Retencion</a></li>
         <li><a href="#" onclick="logout()">Cerrar Sesion</a></li>
       </ul>
     </aside>
@@ -70,6 +71,28 @@
           <div id="clients-list" class="data-list" style="margin-top:18px;">Cargando clientas...</div>
         </div>
       </div>
+
+      <div id="tab-insights" style="display:none;">
+        <h2>Retencion Inteligente</h2>
+        <p style="margin-top:10px;">Clientas que ya estan listas para retoque, reactivacion o seguimiento personalizado.</p>
+        <div class="dash-grid" style="margin-top: 24px;">
+          <div class="dash-card">
+            <h4>Dormidas</h4>
+            <div class="value" id="ins-dormidas">0</div>
+          </div>
+          <div class="dash-card">
+            <h4>Listas para retoque</h4>
+            <div class="value" id="ins-retoque">0</div>
+          </div>
+          <div class="dash-card">
+            <h4>En ritmo</h4>
+            <div class="value" id="ins-ritmo">0</div>
+          </div>
+        </div>
+        <div class="glass-panel" style="margin-top:20px; padding:20px;">
+          <div id="insights-list" class="data-list">Cargando oportunidades...</div>
+        </div>
+      </div>
     </main>
   </div>
 
@@ -104,7 +127,7 @@
     }
 
     function showTab(tab, link) {
-      ['dashboard', 'master-calendar', 'clientes'].forEach(id => {
+      ['dashboard', 'master-calendar', 'clientes', 'insights'].forEach(id => {
         document.getElementById('tab-' + id).style.display = id === tab ? 'block' : 'none';
       });
       document.querySelectorAll('.sidebar-nav a').forEach(el => el.classList.remove('active'));
@@ -202,6 +225,35 @@
           <div>${c.visits || 0} visitas - ${c.points || 0} pts</div>
         </div>
       `).join('');
+    }
+
+    async function loadInsights() {
+      const box = document.getElementById('insights-list');
+      box.textContent = 'Cargando oportunidades...';
+      const res = await fetch('api/admin/insights.php');
+      const data = await res.json();
+      if(!data.success) {
+        box.innerHTML = '<p class="empty-state">No se pudo cargar la inteligencia de retencion.</p>';
+        return;
+      }
+      document.getElementById('ins-dormidas').textContent = data.summary.dormidas;
+      document.getElementById('ins-retoque').textContent = data.summary.listas_para_retoque;
+      document.getElementById('ins-ritmo').textContent = data.summary.en_ritmo;
+      if(!data.insights.length) {
+        box.innerHTML = '<p class="empty-state">Aun no hay historial suficiente para detectar oportunidades.</p>';
+        return;
+      }
+      box.innerHTML = data.insights.map(item => {
+        const wa = item.phone ? `https://wa.me/52${item.phone.replace(/^52/, '')}?text=${encodeURIComponent(item.message)}` : '#';
+        return `<div class="list-row">
+          <div>
+            <strong>${item.name}</strong>
+            <span>${item.status.replaceAll('_', ' ')} · ultima visita ${item.last_date || 'sin fecha'} · ${item.last_service || 'servicio'}</span>
+            <span>${item.message}</span>
+          </div>
+          <a class="btn btn-outline" href="${wa}" target="_blank" rel="noopener">WhatsApp</a>
+        </div>`;
+      }).join('');
     }
 
     function notify(message) {

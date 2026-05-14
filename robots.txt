@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /core/
+Disallow: /data/
+
+Sitemap: https://app.ziresa.mx/sitemap.xml

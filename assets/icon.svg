@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Ziresa">
+  <defs>
+    <linearGradient id="g" x1="80" y1="80" x2="432" y2="432" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5c1a70"/>
+      <stop offset="1" stop-color="#ff4081"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="#fce4ec"/>
+  <path d="M142 152h228l-132 156h125v52H128l132-156H142v-52Z" fill="url(#g)"/>
+  <circle cx="354" cy="150" r="22" fill="#ff4081"/>
+</svg>

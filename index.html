@@ -3,9 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ziresa Salon | Club de Belleza</title>
+  <meta name="theme-color" content="#5c1a70">
+  <meta name="description" content="Agenda en Ziresa Studio: Nail Art, lifting de pestañas y laminado de cejas en Cd. Satelite, Monterrey.">
+  <title>Ziresa Studio | Club de Belleza</title>
   <link rel="stylesheet" href="assets/index.css">
+  <link rel="manifest" href="manifest.webmanifest">
   <style>
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 1200;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 16px clamp(18px, 5vw, 64px);
+      background: rgba(252, 244, 250, 0.76);
+      border-bottom: 1px solid rgba(92, 26, 112, 0.1);
+      backdrop-filter: blur(22px);
+    }
+    .brand-wordmark { font-family: var(--font-serif); color: var(--primary); font-size: 1.9rem; text-decoration: none; }
+    .app-nav { display: flex; gap: 18px; align-items: center; }
+    .app-nav a { color: var(--dark-text); font-weight: 800; text-decoration: none; }
     .landing-hero {
       min-height: 92dvh;
       display: flex;
@@ -17,9 +36,27 @@
       position: relative;
       z-index: 10;
     }
+    .hero-kicker {
+      color: var(--primary);
+      font-weight: 800;
+      margin-bottom: 14px;
+      letter-spacing: 0;
+    }
     .landing-hero h1 { font-size: clamp(3rem, 8vw, 5rem); margin-bottom: 20px; line-height: 1.08; text-shadow: 0 10px 20px rgba(92, 26, 112, 0.12); }
     .landing-hero p { font-size: clamp(1.05rem, 2.2vw, 1.35rem); max-width: 640px; margin-bottom: 42px; color: #4f4054; }
     .hero-actions { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+    .mission-section { padding: 80px 20px; position: relative; z-index: 10; }
+    .mission-wrap { max-width: 1120px; margin: 0 auto; display: grid; grid-template-columns: 1.08fr 0.92fr; gap: 28px; align-items: stretch; }
+    .mission-copy { padding: 38px; }
+    .mission-copy h2 { font-size: clamp(2rem, 4vw, 3.3rem); line-height: 1.04; margin-bottom: 18px; }
+    .mission-list { display: grid; gap: 12px; margin-top: 24px; }
+    .mission-list div { padding: 14px 16px; border-radius: var(--radius-md); background: rgba(255,255,255,0.62); border: 1px solid rgba(255,255,255,0.9); color: #4f4054; font-weight: 700; }
+    .style-card { padding: 26px; display: grid; align-content: end; min-height: 420px; background: linear-gradient(160deg, rgba(92,26,112,0.95), rgba(255,64,129,0.82)); color: white; border-radius: var(--radius-lg); box-shadow: var(--glass-shadow); overflow: hidden; position: relative; }
+    .style-card::before { content: ""; position: absolute; inset: 24px; border: 1px solid rgba(255,255,255,0.28); border-radius: 22px; }
+    .style-card h3, .style-card p { color: white; position: relative; }
+    .style-card h3 { font-size: 2.4rem; line-height: 1.05; margin-bottom: 12px; }
+    .style-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; position: relative; }
+    .style-tags span { border: 1px solid rgba(255,255,255,0.4); border-radius: 999px; padding: 7px 10px; font-size: 0.9rem; font-weight: 800; }
     .club-section { padding: 90px 20px; max-width: 1120px; margin: 0 auto; text-align: center; position: relative; z-index:10; }
     .club-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; margin-top: 42px; }
     .club-card { padding: 30px 24px; text-align: left; transition: var(--transition); }
@@ -27,36 +64,75 @@
     .club-card h3 { margin-bottom: 12px; font-size: 1.5rem; }
     .login-section { padding: 80px 20px 120px; position: relative; z-index:10; }
     .login-card { max-width: 450px; margin: 0 auto; padding: 40px 32px; }
+    @media (max-width: 860px) {
+      .app-header { position: relative; align-items: flex-start; flex-direction: column; }
+      .app-nav { width: 100%; overflow-x: auto; padding-bottom: 4px; }
+      .mission-wrap { grid-template-columns: 1fr; }
+      .mission-copy { padding: 26px; }
+    }
   </style>
 </head>
 <body>
   <div class="ambient-orb orb-1"></div>
   <div class="ambient-orb orb-2"></div>
 
+  <header class="app-header">
+    <a class="brand-wordmark" href="index.html">Ziresa Studio</a>
+    <nav class="app-nav" aria-label="Principal">
+      <a href="#servicios">Servicios</a>
+      <a href="#club">Club</a>
+      <a href="#login">Acceso</a>
+      <button class="btn btn-primary" onclick="openBookingModal()">Agendar</button>
+    </nav>
+  </header>
+
   <section class="landing-hero reveal">
-    <h1 id="hero-title">Ziresa Salon<br><span class="text-gradient text-glow">Club de Belleza</span></h1>
-    <p id="hero-subtitle">Agenda tu cita, acumula visitas y desbloquea beneficios sin perder el toque humano de WhatsApp.</p>
+    <div class="hero-kicker">Nail Art | Lifting de pestañas | Laminado de cejas</div>
+    <h1 id="hero-title">Ziresa Studio<br><span class="text-gradient text-glow">belleza sin moldes</span></h1>
+    <p id="hero-subtitle">Agenda tu cita, guarda tu historial de estilo y entra a un club pensado para mujeres y comunidad LGBT+ que quieren verse como se sienten.</p>
     <div class="hero-actions">
       <button class="btn btn-primary" onclick="openBookingModal()">Agendar Ahora</button>
       <a href="#login" class="btn btn-outline">Mi Club Ziresa</a>
     </div>
   </section>
 
-  <section class="club-section reveal">
+  <section class="mission-section reveal" id="servicios">
+    <div class="mission-wrap">
+      <div class="mission-copy glass-panel">
+        <h2>Una app para recordar tu estilo, no solo tu cita.</h2>
+        <p>Ziresa combina tecnica, creatividad y cuidado humano: manos, mirada y cejas con historial, recompensas y seguimiento para que cada visita se sienta personal.</p>
+        <div class="mission-list">
+          <div>Nail Art y gelish con preferencias guardadas.</div>
+          <div>Lifting de pestañas y laminado de cejas con ventanas de retoque.</div>
+          <div>Un espacio seguro, respetuoso e inclusivo para expresarte.</div>
+          <div>Recordatorios y beneficios para volver en el momento ideal.</div>
+        </div>
+      </div>
+      <div class="style-card">
+        <h3>Style DNA Ziresa</h3>
+        <p>Tu perfil aprende tus colores, largos, acabados y servicios favoritos para recomendarte mejor en cada visita.</p>
+        <div class="style-tags">
+          <span>clean</span><span>bold</span><span>coquette</span><span>mirada natural</span><span>evento</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="club-section reveal" id="club">
     <h2 style="font-size: clamp(2rem, 5vw, 3rem);">Beneficios del <span class="text-gradient">Club Ziresa</span></h2>
-    <p style="margin-top:15px; font-size: 1.1rem;">Cada visita cuenta. El sistema registra tu progreso automaticamente.</p>
+    <p style="margin-top:15px; font-size: 1.1rem;">Cada visita cuenta. La app registra progreso, preferencias y recompensas.</p>
     <div class="club-grid">
       <div class="club-card glass-panel reveal">
         <h3 class="text-gradient">Visita 5</h3>
-        <p>Recibe 20% de descuento en tu quinta visita registrada.</p>
+        <p>Recibe 20% de descuento en tu quinta visita registrada y conserva tu historial de servicios.</p>
       </div>
       <div class="club-card glass-panel reveal">
         <h3 class="text-gradient">Visita 10</h3>
-        <p>Desbloquea 50% de descuento en tu servicio favorito.</p>
+        <p>Desbloquea 50% de descuento y recomendaciones segun tu historial de estilo.</p>
       </div>
       <div class="club-card glass-panel reveal">
         <h3 class="text-gradient">Status VIP</h3>
-        <p>Despues de la visita 15, prioridad de agenda y beneficios recurrentes.</p>
+        <p>Despues de la visita 15, prioridad de agenda, beneficios recurrentes y seguimiento personalizado.</p>
       </div>
     </div>
   </section>
@@ -161,7 +237,7 @@
         });
         const data = await res.json();
         if(!res.ok) throw new Error(data.error || 'No se pudo iniciar sesion');
-        if(data.role === 'client') window.location.href = 'cliente.html';
+        if(data.role === 'client') window.location.href = 'clientes.html';
         else if(data.role === 'manicurist') window.location.href = 'manicurista.html';
         else if(data.role === 'admin1' || data.role === 'admin2') window.location.href = 'admin.html';
       } catch (err) {
@@ -173,10 +249,24 @@
       }
     });
 
+    let brandSettings = { business_whatsapp: '' };
     let allServices = [];
     let selectedServicesIds = [];
     let selectedDateStr = null;
     let selectedSlot = null;
+
+    async function loadPublicSettings() {
+      try {
+        const res = await fetch('api/settings/public.php');
+        const data = await res.json();
+        if(!data.success) return;
+        brandSettings = data;
+        if(data.media && data.media.hero_title) {
+          document.getElementById('hero-title').innerHTML = `${data.media.hero_title}<br><span class="text-gradient text-glow">belleza sin moldes</span>`;
+        }
+        if(data.media && data.media.hero_subtitle) document.getElementById('hero-subtitle').textContent = data.media.hero_subtitle;
+      } catch (e) {}
+    }
 
     function openBookingModal() {
       document.getElementById('booking-modal').classList.add('active');
@@ -332,16 +422,24 @@
         });
         const data = await res.json();
         if(!res.ok || !data.success) throw new Error(data.error || 'No se pudo crear la cita');
-        const waPhone = "528111111111";
+        const waPhone = brandSettings.business_whatsapp || "";
         const text = encodeURIComponent(`Hola Ziresa! Acabo de agendar una cita por la App.\nSoy ${name}.\nFecha: ${selectedDateStr} a las ${selectedSlot.time}.\nQuiero confirmar mi asistencia.`);
-        window.open(`https://wa.me/${waPhone}?text=${text}`, '_blank');
-        closeBookingModal();
+        if(waPhone) {
+          window.open(`https://wa.me/${waPhone}?text=${text}`, '_blank');
+          closeBookingModal();
+        } else {
+          bookingMessage('Cita creada. Configura el WhatsApp real en data/settings.json para abrir confirmacion automatica.');
+        }
       } catch (e) {
         bookingMessage(e.message || 'Error de conexion.');
       } finally {
         button.disabled = false;
         button.textContent = 'Confirmar por WhatsApp';
       }
+    }
+    loadPublicSettings();
+    if('serviceWorker' in navigator) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('service-worker.js').catch(() => {}));
     }
   </script>
 </body>
