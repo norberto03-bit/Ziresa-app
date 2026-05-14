@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hub Manicurista</title>
+  <link rel="stylesheet" href="assets/index.css">
+  <style>
+    .agenda-list { display: grid; gap: 14px; margin-top: 20px; }
+    .agenda-item { display: grid; grid-template-columns: 90px 1fr auto; gap: 16px; align-items: center; padding: 18px; background: rgba(255,255,255,0.68); border: 1px solid rgba(255,255,255,0.9); border-radius: 14px; }
+    .agenda-time { color: var(--primary); font-size: 1.25rem; font-weight: 800; }
+    .status-pill { padding: 6px 10px; border-radius: 999px; background: rgba(92,26,112,0.1); color: var(--primary); font-size: 0.82rem; font-weight: 800; white-space: nowrap; }
+  </style>
+</head>
+<body>
+  <div class="ambient-orb orb-1"></div>
+  <div class="ambient-orb orb-2"></div>
+  <div class="hub-layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">Ziresa Staff</div>
+      <ul class="sidebar-nav">
+        <li><a href="#" class="active" onclick="showTab('agenda', this); loadToday();">Mi Agenda Hoy</a></li>
+        <li><a href="#" onclick="showTab('finanzas', this)">Mis Finanzas</a></li>
+        <li><a href="#" onclick="logout()">Salir</a></li>
+      </ul>
+    </aside>
+
+    <main class="main-content">
+      <div id="tab-agenda">
+        <h2>Mi Dia</h2>
+        <div class="dash-grid" style="margin-top: 24px;">
+          <div class="dash-card">
+            <h4>Citas de hoy</h4>
+            <div class="value" id="today-count">0</div>
+          </div>
+          <div class="dash-card">
+            <h4>Propinas hoy</h4>
+            <div class="value" id="tips-today">$0</div>
+          </div>
+        </div>
+        <div class="glass-panel" style="padding:20px; margin-top:20px;">
+          <div id="agenda-list" class="agenda-list">Cargando agenda...</div>
+        </div>
+      </div>
+
+      <div id="tab-finanzas" style="display:none;">
+        <h2>Registro de Propinas</h2>
+        <div class="glass-panel" style="padding:20px; margin-top:20px; max-width:520px;">
+          <form id="tip-form">
+            <div class="form-group">
+              <label class="form-label" for="tip-amount">Monto (MXN)</label>
+              <input type="number" id="tip-amount" class="form-control" placeholder="Ej. 50" min="1" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="tip-method">Metodo</label>
+              <select id="tip-method" class="form-control">
+                <option value="efectivo">Efectivo</option>
+                <option value="tarjeta">Tarjeta</option>
+                <option value="transferencia">Transferencia</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" style="width:100%;">Registrar Ingreso</button>
+          </form>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script>
+    async function requireStaffSession() {
+      const res = await fetch('api/auth/session.php');
+      const data = await res.json();
+      if(!data.authenticated || data.type !== 'manicurist') window.location.href = 'index.html#login';
+    }
+
+    async function logout() {
+      await fetch('api/auth/logout.php', { method: 'POST' });
+      window.location.href = 'index.html';
+    }
+
+    function showTab(tab, link) {
+      document.getElementById('tab-agenda').style.display = tab === 'agenda' ? 'block' : 'none';
+      document.getElementById('tab-finanzas').style.display = tab === 'finanzas' ? 'block' : 'none';
+      document.querySelectorAll('.sidebar-nav a').forEach(el => el.classList.remove('active'));
+      if(link) link.classList.add('active');
+    }
+
+    async function loadToday() {
+      const list = document.getElementById('agenda-list');
+      list.textContent = 'Cargando agenda...';
+      const res = await fetch('api/manicurist/today.php');
+      const data = await res.json();
+      if(!data.success) {
+        list.innerHTML = '<p class="empty-state">No se pudo cargar la agenda.</p>';
+        return;
+      }
+      document.getElementById('today-count').textContent = data.appointments.length;
+      document.getElementById('tips-today').textContent = '$' + Number(data.tips_today || 0).toLocaleString('es-MX');
+      if(!data.appointments.length) {
+        list.innerHTML = '<p class="empty-state">Sin citas para hoy.</p>';
+        return;
+      }
+      list.innerHTML = data.appointments.map(app => {
+        const services = (app.services || []).map(s => s.name).join(', ');
+        return `<div class="agenda-item">
+          <div class="agenda-time">${app.time}</div>
+          <div><strong>${app.client_name}</strong><span>${services}</span></div>
+          <div class="status-pill">${app.status || 'pendiente'}</div>
+        </div>`;
+      }).join('');
+    }
+
+    document.getElementById('tip-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const amount = Number(document.getElementById('tip-amount').value);
+      const method = document.getElementById('tip-method').value;
+      const res = await fetch('api/finances/add.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ type: 'propina', amount, method, description: 'Propina registrada por manicurista' })
+      });
+      const data = await res.json();
+      notify(data.success ? 'Propina registrada.' : (data.error || 'No se pudo registrar.'));
+      if(data.success) {
+        e.target.reset();
+        loadToday();
+      }
+    });
+
+    function notify(message) {
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3200);
+    }
+
+    requireStaffSession().then(loadToday);
+  </script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+[
+  {
+    "id": "man_1",
+    "name": "Ana",
+    "phone": "8111111111",
+    "pin_hash": "sha256$03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
+    "active": true
+  },
+  {
+    "id": "man_2",
+    "name": "Sofía",
+    "phone": "8122222222",
+    "pin_hash": "sha256$03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
+    "active": true
+  }
+]

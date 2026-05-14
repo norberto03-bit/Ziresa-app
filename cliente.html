@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Club Ziresa</title>
+  <link rel="stylesheet" href="assets/index.css">
+  <style>
+    .feed-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-top: 20px; }
+    .feed-item { background: rgba(255,255,255,0.65); border-radius: 12px; overflow: hidden; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; text-align: center; padding: 12px; color: var(--primary); border: 1px solid rgba(255,255,255,0.9); font-weight: 800; }
+    .feed-item img { width: 100%; height: 100%; object-fit: cover; }
+    .prefs-card { background: rgba(255,255,255,0.68); padding: 18px; border-radius: 16px; margin-top: 20px; border: 1px solid rgba(255,255,255,0.9); }
+  </style>
+</head>
+<body>
+  <div class="ambient-orb orb-1"></div>
+  <div class="ambient-orb orb-2"></div>
+  <div class="hub-layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">Club Ziresa</div>
+      <ul class="sidebar-nav">
+        <li><a href="#" class="active" onclick="showTab('inicio', this)">Mi Progreso</a></li>
+        <li><a href="#" onclick="showTab('feed', this)">Mi Galeria</a></li>
+        <li><a href="#" onclick="showTab('perfil', this)">Preferencias</a></li>
+        <li><a href="#" onclick="logout()">Salir</a></li>
+      </ul>
+    </aside>
+
+    <main class="main-content">
+      <div id="tab-inicio">
+        <h2>Hola, <span id="client-name" class="text-gradient">...</span></h2>
+        <div class="glass-panel reveal active" style="padding: 30px; margin-top: 20px; position:relative; overflow:hidden;">
+          <h3>Tu Progreso Ziresa</h3>
+          <p style="margin-bottom:20px;">Tienes <strong id="client-points">0</strong> puntos.</p>
+          <div class="loyalty-progress-container">
+            <div class="loyalty-progress-bar" id="loyalty-bar" style="width: 0%;"></div>
+            <div class="loyalty-milestone reached" style="left:0%;" title="Visita 1"></div>
+            <div class="loyalty-milestone" id="m-2" style="left:20%;" title="Visita 2"></div>
+            <div class="loyalty-milestone" id="m-3" style="left:40%;" title="Visita 3"></div>
+            <div class="loyalty-milestone" id="m-4" style="left:60%;" title="Visita 4"></div>
+            <div class="loyalty-milestone" id="m-5" style="left:80%;" title="Visita 5"></div>
+            <div class="loyalty-milestone" id="m-10" style="left:100%;" title="Visita 10"></div>
+          </div>
+          <div class="progress-labels">
+            <span>Inicio</span><span>Visita 5: 20% off</span><span>Visita 10: 50% off</span>
+          </div>
+          <div class="next-appointment">
+            <div>
+              <h4>Proxima Cita</h4>
+              <p id="next-app-date">Buscando...</p>
+              <p id="next-app-services"></p>
+            </div>
+            <a class="btn btn-outline" href="index.html">Agendar</a>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-feed" style="display: none;">
+        <h2>Mi Galeria Ziresa</h2>
+        <p style="color:#666; margin-top:10px;">Tu diario de estilo y disenos favoritos.</p>
+        <div class="feed-grid" id="feed-container"></div>
+      </div>
+
+      <div id="tab-perfil" style="display: none;">
+        <h2>Mis Preferencias</h2>
+        <div class="prefs-card">
+          <h4 style="color:var(--primary);">Mis Servicios Favoritos</h4>
+          <ul id="fav-services" style="margin-top:10px; padding-left:20px; color:#555;">
+            <li>Cargando...</li>
+          </ul>
+        </div>
+        <div class="prefs-card">
+          <h4 style="color:var(--primary);">Resumen</h4>
+          <p style="margin-top:10px; color:#555;" id="client-summary">Cargando tu historial...</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    function showTab(tab, link) {
+      ['inicio', 'feed', 'perfil'].forEach(id => {
+        document.getElementById('tab-' + id).style.display = id === tab ? 'block' : 'none';
+      });
+      document.querySelectorAll('.sidebar-nav a').forEach(el => el.classList.remove('active'));
+      if(link) link.classList.add('active');
+    }
+
+    async function logout() {
+      await fetch('api/auth/logout.php', { method: 'POST' });
+      window.location.href = 'index.html';
+    }
+
+    async function loadClientData() {
+      try {
+        const res = await fetch('api/client/me.php');
+        if(res.status === 401) {
+          window.location.href = 'index.html#login';
+          return;
+        }
+        const data = await res.json();
+        if(!data.success) return;
+        document.getElementById('client-name').textContent = data.client.name || 'Hermosa';
+        document.getElementById('client-points').textContent = data.client.points || 0;
+        const visits = parseInt(data.client.visits || 0);
+        const percentage = visits <= 5 ? (visits / 5) * 80 : Math.min(100, 80 + (((visits - 5) / 5) * 20));
+        document.getElementById('loyalty-bar').style.width = percentage + '%';
+        [2,3,4,5,10].forEach(n => {
+          if(visits >= n) document.getElementById('m-' + n).classList.add('reached');
+        });
+
+        if(data.next_appointment) {
+          document.getElementById('next-app-date').textContent = `${data.next_appointment.date} a las ${data.next_appointment.time}`;
+          document.getElementById('next-app-services').textContent = data.next_appointment.services.map(s => s.name).join(', ');
+        } else {
+          document.getElementById('next-app-date').textContent = 'Sin citas proximas';
+          document.getElementById('next-app-services').textContent = 'Agenda cuando quieras desde la portada.';
+        }
+
+        const favList = document.getElementById('fav-services');
+        if(data.favorite_services && data.favorite_services.length) {
+          favList.innerHTML = data.favorite_services.map(s => `<li>${s}</li>`).join('');
+        } else {
+          favList.innerHTML = '<li>Aun no hay servicios favoritos.</li>';
+        }
+        document.getElementById('client-summary').textContent = `${visits} visitas registradas y ${data.visits_count || 0} citas completadas.`;
+
+        const gallery = data.gallery || [];
+        const feed = document.getElementById('feed-container');
+        if(gallery.length) {
+          feed.innerHTML = gallery.map(src => `<div class="feed-item"><img src="${src}" alt="Diseno de unas"></div>`).join('');
+        } else {
+          feed.innerHTML = '<div class="feed-item">Tu primera foto aparecera despues de tu visita.</div>';
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    loadClientData();
+  </script>
+</body>
+</html>

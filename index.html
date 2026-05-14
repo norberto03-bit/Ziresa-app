@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ziresa Salon | Club de Belleza</title>
+  <link rel="stylesheet" href="assets/index.css">
+  <style>
+    .landing-hero {
+      min-height: 92dvh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 64px 20px 48px;
+      position: relative;
+      z-index: 10;
+    }
+    .landing-hero h1 { font-size: clamp(3rem, 8vw, 5rem); margin-bottom: 20px; line-height: 1.08; text-shadow: 0 10px 20px rgba(92, 26, 112, 0.12); }
+    .landing-hero p { font-size: clamp(1.05rem, 2.2vw, 1.35rem); max-width: 640px; margin-bottom: 42px; color: #4f4054; }
+    .hero-actions { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+    .club-section { padding: 90px 20px; max-width: 1120px; margin: 0 auto; text-align: center; position: relative; z-index:10; }
+    .club-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; margin-top: 42px; }
+    .club-card { padding: 30px 24px; text-align: left; transition: var(--transition); }
+    .club-card:hover { transform: translateY(-6px); }
+    .club-card h3 { margin-bottom: 12px; font-size: 1.5rem; }
+    .login-section { padding: 80px 20px 120px; position: relative; z-index:10; }
+    .login-card { max-width: 450px; margin: 0 auto; padding: 40px 32px; }
+  </style>
+</head>
+<body>
+  <div class="ambient-orb orb-1"></div>
+  <div class="ambient-orb orb-2"></div>
+
+  <section class="landing-hero reveal">
+    <h1 id="hero-title">Ziresa Salon<br><span class="text-gradient text-glow">Club de Belleza</span></h1>
+    <p id="hero-subtitle">Agenda tu cita, acumula visitas y desbloquea beneficios sin perder el toque humano de WhatsApp.</p>
+    <div class="hero-actions">
+      <button class="btn btn-primary" onclick="openBookingModal()">Agendar Ahora</button>
+      <a href="#login" class="btn btn-outline">Mi Club Ziresa</a>
+    </div>
+  </section>
+
+  <section class="club-section reveal">
+    <h2 style="font-size: clamp(2rem, 5vw, 3rem);">Beneficios del <span class="text-gradient">Club Ziresa</span></h2>
+    <p style="margin-top:15px; font-size: 1.1rem;">Cada visita cuenta. El sistema registra tu progreso automaticamente.</p>
+    <div class="club-grid">
+      <div class="club-card glass-panel reveal">
+        <h3 class="text-gradient">Visita 5</h3>
+        <p>Recibe 20% de descuento en tu quinta visita registrada.</p>
+      </div>
+      <div class="club-card glass-panel reveal">
+        <h3 class="text-gradient">Visita 10</h3>
+        <p>Desbloquea 50% de descuento en tu servicio favorito.</p>
+      </div>
+      <div class="club-card glass-panel reveal">
+        <h3 class="text-gradient">Status VIP</h3>
+        <p>Despues de la visita 15, prioridad de agenda y beneficios recurrentes.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="login-section reveal" id="login">
+    <div class="login-card glass-panel">
+      <h2 style="text-align: center; margin-bottom: 20px;" class="text-gradient">Acceso al Hub</h2>
+      <p style="text-align: center; margin-bottom: 30px; font-size:1rem; color:#666;">Consulta puntos, visitas y proximas citas.</p>
+      <div id="error-msg" class="empty-state" style="display:none; margin-bottom: 15px;"></div>
+      <form id="login-form">
+        <div class="form-group">
+          <label class="form-label" for="phone">Telefono o usuario</label>
+          <input type="text" id="phone" class="form-control" placeholder="Ej. 8112345678" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="pin">PIN</label>
+          <input type="password" id="pin" class="form-control" placeholder="****" required>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top:10px;" id="login-button">Ingresar al Club</button>
+      </form>
+    </div>
+  </section>
+
+  <div class="fab-container">
+    <button class="fab-btn" onclick="openBookingModal()">Agendar</button>
+  </div>
+
+  <div class="modal-overlay" id="booking-modal">
+    <div class="modal-content glass-panel" style="max-width: 680px;">
+      <button class="modal-close" onclick="closeBookingModal()" aria-label="Cerrar">x</button>
+      <h2 style="margin-bottom: 15px; font-size: 2rem;" class="text-gradient">Agendar tu Cita</h2>
+      <div id="booking-msg" class="empty-state" style="display:none; margin-bottom: 16px;"></div>
+
+      <div id="book-step-1">
+        <p style="margin-bottom: 22px; font-size: 1.05rem;">Paso 1: elige uno o mas servicios.</p>
+        <div id="modal-services-list" style="max-height: 350px; overflow-y:auto; padding-right:8px;">Cargando servicios...</div>
+        <button class="btn btn-primary" style="width:100%; margin-top:28px;" onclick="nextToStep2()">Continuar al Calendario</button>
+      </div>
+
+      <div id="book-step-2" style="display:none;">
+        <p style="margin-bottom: 22px; font-size: 1.05rem;">Paso 2: elige fecha y horario disponible.</p>
+        <div class="day-picker" id="modal-day-picker"></div>
+        <div id="modal-slots-container" style="margin-top: 28px; display:none;">
+          <h3 style="font-size:1.3rem; margin-bottom:15px; color:var(--primary);">Horarios Libres</h3>
+          <div class="calendar-grid" id="modal-slots-list"></div>
+        </div>
+        <div style="display:flex; gap:12px; margin-top:34px;">
+          <button class="btn btn-outline" style="flex:1;" onclick="backToStep1()">Volver</button>
+          <button class="btn btn-primary" style="flex:2;" onclick="nextToStep3()" id="btn-to-step3" disabled>Elegir Datos</button>
+        </div>
+      </div>
+
+      <div id="book-step-3" style="display:none;">
+        <p style="margin-bottom: 22px; font-size: 1.05rem;">Paso 3: confirma tus datos.</p>
+        <div class="form-group">
+          <label class="form-label" for="book-name">Tu Nombre</label>
+          <input type="text" id="book-name" class="form-control" placeholder="Como te llamas">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="book-phone">WhatsApp</label>
+          <input type="tel" id="book-phone" class="form-control" placeholder="Ej. 8112345678">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="book-pin">Crea un PIN para entrar al club</label>
+          <input type="password" id="book-pin" class="form-control" placeholder="Minimo 4 caracteres">
+        </div>
+        <div style="display:flex; gap:12px; margin-top:34px;">
+          <button class="btn btn-outline" style="flex:1;" onclick="backToStep2()">Volver</button>
+          <button class="btn btn-primary" style="flex:2; background: linear-gradient(45deg, #1b7f5a, #25D366);" onclick="confirmBooking()" id="confirm-booking">Confirmar por WhatsApp</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const revealElements = document.querySelectorAll('.reveal');
+    const revealObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if(entry.isIntersecting) {
+          entry.target.classList.add('active');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    revealElements.forEach(el => revealObserver.observe(el));
+    setTimeout(() => document.querySelector('.landing-hero').classList.add('active'), 100);
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const button = document.getElementById('login-button');
+      const errorMsg = document.getElementById('error-msg');
+      errorMsg.style.display = 'none';
+      button.disabled = true;
+      button.textContent = 'Ingresando...';
+      try {
+        const phone = document.getElementById('phone').value.trim();
+        const pin = document.getElementById('pin').value.trim();
+        const res = await fetch('api/auth/login.php', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ phone, pin })
+        });
+        const data = await res.json();
+        if(!res.ok) throw new Error(data.error || 'No se pudo iniciar sesion');
+        if(data.role === 'client') window.location.href = 'cliente.html';
+        else if(data.role === 'manicurist') window.location.href = 'manicurista.html';
+        else if(data.role === 'admin1' || data.role === 'admin2') window.location.href = 'admin.html';
+      } catch (err) {
+        errorMsg.textContent = err.message || 'Error de conexion';
+        errorMsg.style.display = 'block';
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Ingresar al Club';
+      }
+    });
+
+    let allServices = [];
+    let selectedServicesIds = [];
+    let selectedDateStr = null;
+    let selectedSlot = null;
+
+    function openBookingModal() {
+      document.getElementById('booking-modal').classList.add('active');
+      loadServicesForModal();
+    }
+    function closeBookingModal() {
+      document.getElementById('booking-modal').classList.remove('active');
+      resetBooking();
+    }
+    function resetBooking() {
+      document.getElementById('book-step-1').style.display = 'block';
+      document.getElementById('book-step-2').style.display = 'none';
+      document.getElementById('book-step-3').style.display = 'none';
+      document.getElementById('booking-msg').style.display = 'none';
+      document.getElementById('btn-to-step3').disabled = true;
+      selectedServicesIds = [];
+      selectedDateStr = null;
+      selectedSlot = null;
+    }
+    function bookingMessage(message) {
+      const box = document.getElementById('booking-msg');
+      box.textContent = message;
+      box.style.display = 'block';
+    }
+
+    async function loadServicesForModal() {
+      try {
+        const res = await fetch('api/services/list.php');
+        const data = await res.json();
+        allServices = data.services || [];
+        const list = document.getElementById('modal-services-list');
+        if(!allServices.length) {
+          list.innerHTML = '<p class="empty-state">No hay servicios configurados.</p>';
+          return;
+        }
+        list.innerHTML = allServices.map(s => `
+          <button type="button" class="service-card glass-panel" onclick="toggleService('${s.id}', this)">
+            <div>
+              <strong style="display:block; font-size:1.1rem; margin-bottom:5px; color:var(--primary);">${s.name}</strong>
+              <span style="font-size:0.95rem; color:#666;">${s.duration_minutes} min</span>
+            </div>
+            <div style="font-weight:800; font-size:1.2rem; color:var(--accent);">$${s.price}</div>
+          </button>
+        `).join('');
+      } catch (e) {
+        document.getElementById('modal-services-list').innerHTML = '<p class="empty-state">No se pudieron cargar los servicios.</p>';
+      }
+    }
+
+    function toggleService(id, element) {
+      if(selectedServicesIds.includes(id)) {
+        selectedServicesIds = selectedServicesIds.filter(x => x !== id);
+        element.classList.remove('selected');
+      } else {
+        selectedServicesIds.push(id);
+        element.classList.add('selected');
+      }
+    }
+
+    function nextToStep2() {
+      if(selectedServicesIds.length === 0) { bookingMessage('Elige al menos un servicio.'); return; }
+      document.getElementById('booking-msg').style.display = 'none';
+      document.getElementById('book-step-1').style.display = 'none';
+      document.getElementById('book-step-2').style.display = 'block';
+      generateDayPicker();
+    }
+    function backToStep1() {
+      document.getElementById('book-step-2').style.display = 'none';
+      document.getElementById('book-step-1').style.display = 'block';
+    }
+
+    function generateDayPicker() {
+      const picker = document.getElementById('modal-day-picker');
+      picker.innerHTML = '';
+      const today = new Date();
+      const days = ['Dom','Lun','Mar','Mie','Jue','Vie','Sab'];
+      for(let i = 0; i < 14; i++) {
+        const d = new Date(today);
+        d.setDate(today.getDate() + i);
+        const dateStr = d.toISOString().split('T')[0];
+        const dayName = i === 0 ? 'Hoy' : (i === 1 ? 'Man' : days[d.getDay()]);
+        picker.innerHTML += `<button type="button" class="day-card" onclick="selectDate('${dateStr}', this)"><div style="font-size:0.85rem; font-weight:bold; text-transform:uppercase; color:var(--primary);">${dayName}</div><div style="font-size:1.8rem; font-weight:800; margin-top:5px; color:var(--dark-text);">${d.getDate()}</div></button>`;
+      }
+    }
+
+    async function selectDate(dateStr, element) {
+      document.querySelectorAll('.day-card').forEach(el => el.classList.remove('active'));
+      element.classList.add('active');
+      selectedDateStr = dateStr;
+      selectedSlot = null;
+      document.getElementById('btn-to-step3').disabled = true;
+      const duration = selectedServicesIds.reduce((sum, id) => {
+        const service = allServices.find(x => x.id === id);
+        return sum + (service ? Number(service.duration_minutes) : 0);
+      }, 0);
+      document.getElementById('modal-slots-container').style.display = 'block';
+      const list = document.getElementById('modal-slots-list');
+      list.innerHTML = '<span style="color:#666;">Buscando disponibilidad...</span>';
+      try {
+        const res = await fetch(`api/calendar/get.php?date=${dateStr}&duration=${duration}`);
+        const data = await res.json();
+        const slots = data.slots || [];
+        if(!slots.length) {
+          list.innerHTML = '<p class="empty-state" style="grid-column: 1 / -1;">No hay disponibilidad. Prueba otro dia.</p>';
+          return;
+        }
+        list.innerHTML = slots.map(slot => `<button type="button" class="cal-slot" onclick="selectSlot('${slot.time}', '${slot.manicurist_id}', this)">${slot.time}</button>`).join('');
+      } catch (e) {
+        list.innerHTML = '<p class="empty-state" style="grid-column: 1 / -1;">Error al cargar horarios.</p>';
+      }
+    }
+
+    function selectSlot(time, manicuristId, element) {
+      document.querySelectorAll('.cal-slot').forEach(el => el.classList.remove('selected'));
+      element.classList.add('selected');
+      selectedSlot = { time, manicuristId };
+      document.getElementById('btn-to-step3').disabled = false;
+    }
+
+    function nextToStep3() {
+      if(!selectedSlot) { bookingMessage('Elige un horario disponible.'); return; }
+      document.getElementById('booking-msg').style.display = 'none';
+      document.getElementById('book-step-2').style.display = 'none';
+      document.getElementById('book-step-3').style.display = 'block';
+    }
+    function backToStep2() {
+      document.getElementById('book-step-3').style.display = 'none';
+      document.getElementById('book-step-2').style.display = 'block';
+    }
+
+    async function confirmBooking() {
+      const button = document.getElementById('confirm-booking');
+      const name = document.getElementById('book-name').value.trim();
+      const phone = document.getElementById('book-phone').value.trim();
+      const pin = document.getElementById('book-pin').value.trim();
+      if(!name || !phone || pin.length < 4) { bookingMessage('Completa nombre, WhatsApp y PIN de minimo 4 caracteres.'); return; }
+      if(!selectedDateStr || !selectedSlot) { bookingMessage('Elige fecha y horario.'); return; }
+      button.disabled = true;
+      button.textContent = 'Confirmando...';
+      try {
+        const res = await fetch('api/appointments/create_public.php', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            date: selectedDateStr,
+            time: selectedSlot.time,
+            services: selectedServicesIds,
+            manicurist_id: selectedSlot.manicuristId,
+            client_name: name,
+            client_phone: phone,
+            client_pin: pin
+          })
+        });
+        const data = await res.json();
+        if(!res.ok || !data.success) throw new Error(data.error || 'No se pudo crear la cita');
+        const waPhone = "528111111111";
+        const text = encodeURIComponent(`Hola Ziresa! Acabo de agendar una cita por la App.\nSoy ${name}.\nFecha: ${selectedDateStr} a las ${selectedSlot.time}.\nQuiero confirmar mi asistencia.`);
+        window.open(`https://wa.me/${waPhone}?text=${text}`, '_blank');
+        closeBookingModal();
+      } catch (e) {
+        bookingMessage(e.message || 'Error de conexion.');
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Confirmar por WhatsApp';
+      }
+    }
+  </script>
+</body>
+</html>

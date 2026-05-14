@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ziresa Admin</title>
+  <link rel="stylesheet" href="assets/index.css">
+  <style>
+    .month-calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 10px; }
+    .month-header { font-weight: 800; text-align: center; color: var(--primary); padding: 10px; background: rgba(255,255,255,0.72); border-radius: 8px; }
+    .month-day { background: rgba(255,255,255,0.58); border: 1px solid rgba(92, 26, 112, 0.12); border-radius: 8px; min-height: 86px; padding: 8px; cursor: pointer; transition: var(--transition); display: flex; flex-direction: column; }
+    .month-day:hover { background: white; box-shadow: 0 4px 12px rgba(0,0,0,0.06); transform: translateY(-2px); }
+    .month-day.empty { background: transparent; border: none; cursor: default; box-shadow: none; transform: none; }
+    .day-num { font-weight: 800; margin-bottom: 6px; text-align: right; color: var(--primary); }
+    .day-badge { font-size: 0.75rem; background: var(--accent); color: white; padding: 3px 6px; border-radius: 6px; margin-bottom: 2px; text-align: center; }
+    .cal-controls { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 20px; }
+    .cal-controls h3 { margin: 0; font-size: 1.5rem; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="ambient-orb orb-1"></div>
+  <div class="ambient-orb orb-2"></div>
+  <div class="hub-layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">Ziresa Admin</div>
+      <ul class="sidebar-nav">
+        <li><a href="#" class="active" onclick="showTab('dashboard', this); loadStats();">Panel Principal</a></li>
+        <li><a href="#" onclick="showTab('master-calendar', this); renderCalendar();">Master Calendar</a></li>
+        <li><a href="#" onclick="showTab('clientes', this); loadClients();">Gestion de Clientes</a></li>
+        <li><a href="#" onclick="logout()">Cerrar Sesion</a></li>
+      </ul>
+    </aside>
+
+    <main class="main-content">
+      <div id="tab-dashboard">
+        <h2>Dashboard en Vivo</h2>
+        <div class="dash-grid" style="margin-top: 30px;">
+          <div class="dash-card">
+            <h4>Citas Hoy</h4>
+            <div class="value" id="stat-citas">0</div>
+          </div>
+          <div class="dash-card">
+            <h4>Ingresos Proyectados</h4>
+            <div class="value" id="stat-ingresos">$0</div>
+          </div>
+          <div class="dash-card">
+            <h4>Nuevos Miembros Club</h4>
+            <div class="value" id="stat-clientes">0</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-master-calendar" style="display: none;">
+        <h2>Master Calendar</h2>
+        <p style="margin-bottom:20px;">Gestiona el calendario anual. Haz clic en un dia para configurar horarios y revisar ocupacion.</p>
+        <div class="glass-panel" style="padding:20px;">
+          <div class="cal-controls">
+            <button class="btn btn-outline" onclick="changeMonth(-1)">Anterior</button>
+            <h3 id="current-month-year">Mayo 2026</h3>
+            <button class="btn btn-outline" onclick="changeMonth(1)">Siguiente</button>
+          </div>
+          <div class="month-calendar" id="calendar-grid"></div>
+        </div>
+      </div>
+
+      <div id="tab-clientes" style="display:none;">
+        <h2>Club Ziresa - Clientes</h2>
+        <div class="glass-panel" style="margin-top:20px; padding:20px;">
+          <p>Lista de clientas y conteo de visitas para fidelizacion.</p>
+          <div id="clients-list" class="data-list" style="margin-top:18px;">Cargando clientas...</div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-overlay" id="day-modal">
+    <div class="modal-content glass-panel" style="max-width: 520px; padding: 30px;">
+      <button class="modal-close" onclick="closeDayModal()">x</button>
+      <h2 id="modal-day-title" style="margin-bottom: 20px;">Configurar Horario</h2>
+      <p style="margin-bottom: 10px; font-size:0.95rem;">Escribe los horarios habilitados para este dia separados por coma.</p>
+      <div class="form-group">
+        <label class="form-label" for="custom-hours">Horarios</label>
+        <input type="text" id="custom-hours" class="form-control" placeholder="10:00, 11:00, 12:00, 15:00">
+      </div>
+      <p style="font-size:0.85rem; color:#666; margin-bottom:20px;">Si lo dejas en blanco, se usara el horario general de apertura.</p>
+      <button class="btn btn-primary" style="width:100%;" onclick="saveDaySchedule()">Guardar Horario</button>
+    </div>
+  </div>
+
+  <script>
+    let currentDate = new Date();
+    let selectedDateStr = "";
+    let monthAppointments = [];
+
+    async function requireAdminSession() {
+      const res = await fetch('api/auth/session.php');
+      const data = await res.json();
+      if(!data.authenticated || !['admin1','admin2'].includes(data.type)) window.location.href = 'index.html#login';
+    }
+
+    async function logout() {
+      await fetch('api/auth/logout.php', { method: 'POST' });
+      window.location.href = 'index.html';
+    }
+
+    function showTab(tab, link) {
+      ['dashboard', 'master-calendar', 'clientes'].forEach(id => {
+        document.getElementById('tab-' + id).style.display = id === tab ? 'block' : 'none';
+      });
+      document.querySelectorAll('.sidebar-nav a').forEach(el => el.classList.remove('active'));
+      if(link) link.classList.add('active');
+    }
+
+    const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
+    async function loadStats() {
+      const res = await fetch('api/admin/stats.php');
+      if(res.status === 401 || res.status === 403) { window.location.href = 'index.html#login'; return; }
+      const data = await res.json();
+      if(!data.success) return;
+      document.getElementById('stat-citas').textContent = data.appointments_today;
+      document.getElementById('stat-ingresos').textContent = '$' + Number(data.projected_income).toLocaleString('es-MX');
+      document.getElementById('stat-clientes').textContent = data.new_clients_today;
+    }
+
+    async function loadMonthAppointments() {
+      const res = await fetch('api/appointments/list.php');
+      const data = await res.json();
+      monthAppointments = data.appointments || [];
+    }
+
+    async function renderCalendar() {
+      await loadMonthAppointments();
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+      document.getElementById('current-month-year').textContent = `${monthNames[month]} ${year}`;
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const grid = document.getElementById('calendar-grid');
+      grid.innerHTML = '<div class="month-header">Dom</div><div class="month-header">Lun</div><div class="month-header">Mar</div><div class="month-header">Mie</div><div class="month-header">Jue</div><div class="month-header">Vie</div><div class="month-header">Sab</div>';
+      for(let i = 0; i < firstDay; i++) grid.innerHTML += '<div class="month-day empty"></div>';
+      for(let i = 1; i <= daysInMonth; i++) {
+        const mStr = (month + 1).toString().padStart(2, '0');
+        const dStr = i.toString().padStart(2, '0');
+        const dateStr = `${year}-${mStr}-${dStr}`;
+        const count = monthAppointments.filter(app => app.date === dateStr && app.status !== 'cancelada').length;
+        const badge = count ? `<div class="day-badge">${count} cita${count === 1 ? '' : 's'}</div>` : '';
+        grid.innerHTML += `<div class="month-day" onclick="openDayModal('${dateStr}')"><div class="day-num">${i}</div>${badge}</div>`;
+      }
+    }
+
+    function changeMonth(offset) {
+      currentDate.setMonth(currentDate.getMonth() + offset);
+      renderCalendar();
+    }
+
+    function openDayModal(dateStr) {
+      selectedDateStr = dateStr;
+      document.getElementById('modal-day-title').textContent = `Horario: ${dateStr}`;
+      document.getElementById('custom-hours').value = "";
+      document.getElementById('day-modal').classList.add('active');
+    }
+
+    function closeDayModal() {
+      document.getElementById('day-modal').classList.remove('active');
+    }
+
+    async function saveDaySchedule() {
+      const hoursStr = document.getElementById('custom-hours').value;
+      const hours = hoursStr.split(',').map(s => s.trim()).filter(Boolean);
+      try {
+        const res = await fetch('api/calendar/save_day.php', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ date: selectedDateStr, hours })
+        });
+        const data = await res.json();
+        if(data.success) {
+          notify('Horario configurado para el dia ' + selectedDateStr);
+          closeDayModal();
+          renderCalendar();
+        } else {
+          notify(data.error || 'No se pudo guardar.');
+        }
+      } catch (e) {
+        notify('Error al guardar.');
+      }
+    }
+
+    async function loadClients() {
+      const box = document.getElementById('clients-list');
+      box.textContent = 'Cargando clientas...';
+      const res = await fetch('api/clients/list.php');
+      const data = await res.json();
+      if(!data.success || !data.clients.length) {
+        box.innerHTML = '<p class="empty-state">Todavia no hay clientas registradas.</p>';
+        return;
+      }
+      box.innerHTML = data.clients.map(c => `
+        <div class="list-row">
+          <div><strong>${c.name || 'Clienta'}</strong><span>${c.phone || ''}</span></div>
+          <div>${c.visits || 0} visitas - ${c.points || 0} pts</div>
+        </div>
+      `).join('');
+    }
+
+    function notify(message) {
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3200);
+    }
+
+    requireAdminSession().then(loadStats);
+  </script>
+</body>
+</html>

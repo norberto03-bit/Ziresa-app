@@ -1,0 +1,16 @@
+[
+  {
+    "id": "admin_1",
+    "phone": "admin",
+    "pin_hash": "sha256$240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9",
+    "role": "admin1",
+    "name": "Super Admin"
+  },
+  {
+    "id": "admin_2",
+    "phone": "finanzas",
+    "pin_hash": "sha256$00726efca170e561fadd6fa56d10b48e3b8aea081a614b0bcb7c42eed6cf01d9",
+    "role": "admin2",
+    "name": "Admin Finanzas"
+  }
+]
