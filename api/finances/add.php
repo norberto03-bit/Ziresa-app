@@ -12,8 +12,8 @@ $description = $req['description'] ?? '';
 $appointment_id = $req['appointment_id'] ?? '';
 $manicurist_id = $user['type'] === 'manicurist' ? $user['id'] : ($req['manicurist_id'] ?? '');
 
-if($amount <= 0) api_error('Monto inválido', 400);
-if(!in_array($type, ['ingreso', 'egreso', 'propina'])) api_error('Tipo de movimiento inválido', 400);
+if($amount <= 0) api_error('Monto invalido', 400);
+if(!in_array($type, ['ingreso', 'egreso', 'propina'])) api_error('Tipo de movimiento invalido', 400);
 if(!in_array($method, ['efectivo', 'tarjeta', 'transferencia'])) api_error('Metodo de pago invalido', 400);
 
 $finances = db_read('finances', []);
