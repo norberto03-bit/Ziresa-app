@@ -88,7 +88,7 @@
 
   <section class="landing-hero reveal">
     <div class="hero-kicker">Nail Art | Lifting de pestañas | Laminado de cejas</div>
-    <h1 id="hero-title">Ziresa Studio<br><span class="text-gradient text-glow">belleza sin moldes</span></h1>
+    <h1 id="hero-title">Ziresa Studio<br><span class="text-gradient text-glow" id="tw-target"></span><span class="tw-cursor" id="tw-cursor"></span></h1>
     <p id="hero-subtitle">Agenda tu cita, guarda tu historial de estilo y entra a un club pensado para mujeres y comunidad LGBT+ que quieren verse como se sienten.</p>
     <div class="hero-actions">
       <button class="btn btn-primary" onclick="openBookingModal()">Agendar Ahora</button>
@@ -111,7 +111,7 @@
       <div class="style-card">
         <h3>Style DNA Ziresa</h3>
         <p>Tu perfil aprende tus colores, largos, acabados y servicios favoritos para recomendarte mejor en cada visita.</p>
-        <div class="style-tags">
+        <div class="style-tags" id="style-tags-container">
           <span>clean</span><span>bold</span><span>coquette</span><span>mirada natural</span><span>evento</span>
         </div>
       </div>
@@ -166,7 +166,7 @@
       <h2 style="margin-bottom: 15px; font-size: 2rem;" class="text-gradient">Agendar tu Cita</h2>
       <div id="booking-msg" class="empty-state" style="display:none; margin-bottom: 16px;"></div>
 
-      <div id="book-step-1">
+      <div id="book-step-1" class="step-enter">
         <p style="margin-bottom: 22px; font-size: 1.05rem;">Paso 1: elige uno o mas servicios.</p>
         <div id="modal-services-list" style="max-height: 350px; overflow-y:auto; padding-right:8px;">Cargando servicios...</div>
         <button class="btn btn-primary" style="width:100%; margin-top:28px;" onclick="nextToStep2()">Continuar al Calendario</button>
@@ -208,23 +208,72 @@
   </div>
 
   <script>
+    /* ANTIGRAVITY UPGRADE: Ripple effect on all buttons */
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('.btn, .fab-btn');
+      if (!btn) return;
+      const r = document.createElement('span');
+      r.className = 'ripple-span';
+      const rect = btn.getBoundingClientRect();
+      r.style.left = (e.clientX - rect.left) + 'px';
+      r.style.top  = (e.clientY - rect.top)  + 'px';
+      btn.appendChild(r);
+      r.addEventListener('animationend', () => r.remove());
+    });
+
+    /* ANTIGRAVITY UPGRADE: Header compact on scroll */
+    const appHeader = document.querySelector('.app-header');
+    if (appHeader) {
+      window.addEventListener('scroll', () => {
+        appHeader.classList.toggle('scrolled', window.scrollY > 50);
+      }, { passive: true });
+    }
+
+    /* ANTIGRAVITY UPGRADE: Typewriter on hero */
+    function typewriter(el, text, speed = 55) {
+      let i = 0;
+      el.textContent = '';
+      const cursor = document.getElementById('tw-cursor');
+      function tick() {
+        if (i < text.length) {
+          el.textContent += text[i++];
+          setTimeout(tick, speed + Math.random() * 30);
+        } else if (cursor) {
+          setTimeout(() => { if(cursor) cursor.style.display = 'none'; }, 1800);
+        }
+      }
+      tick();
+    }
+
+    /* ANTIGRAVITY UPGRADE: Reveal observer — triggers typewriter + style tags stagger */
     const revealElements = document.querySelectorAll('.reveal');
     const revealObserver = new IntersectionObserver((entries, observer) => {
       entries.forEach(entry => {
-        if(entry.isIntersecting) {
+        if (entry.isIntersecting) {
           entry.target.classList.add('active');
+          /* Trigger style-tags stagger when mission section appears */
+          const tags = entry.target.querySelector('#style-tags-container');
+          if (tags) tags.classList.add('style-tags-visible');
           observer.unobserve(entry.target);
         }
       });
     }, { threshold: 0.1 });
     revealElements.forEach(el => revealObserver.observe(el));
-    setTimeout(() => document.querySelector('.landing-hero').classList.add('active'), 100);
 
+    /* Hero appear + typewriter start */
+    setTimeout(() => {
+      const hero = document.querySelector('.landing-hero');
+      hero.classList.add('active');
+      setTimeout(() => typewriter(document.getElementById('tw-target'), 'belleza sin moldes'), 400);
+    }, 120);
+
+    /* ANTIGRAVITY UPGRADE: Login form — shake on error, slide-down message */
     document.getElementById('login-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const button = document.getElementById('login-button');
       const errorMsg = document.getElementById('error-msg');
       errorMsg.style.display = 'none';
+      errorMsg.classList.remove('error-reveal');
       button.disabled = true;
       button.textContent = 'Ingresando...';
       try {
@@ -243,6 +292,11 @@
       } catch (err) {
         errorMsg.textContent = err.message || 'Error de conexion';
         errorMsg.style.display = 'block';
+        void errorMsg.offsetWidth;
+        errorMsg.classList.add('error-reveal');
+        const form = document.getElementById('login-form');
+        form.classList.add('shake');
+        form.addEventListener('animationend', () => form.classList.remove('shake'), { once: true });
       } finally {
         button.disabled = false;
         button.textContent = 'Ingresar al Club';
@@ -302,8 +356,10 @@
           list.innerHTML = '<p class="empty-state">No hay servicios configurados.</p>';
           return;
         }
+        /* ANTIGRAVITY UPGRADE: Service cards with checkmark */
         list.innerHTML = allServices.map(s => `
           <button type="button" class="service-card glass-panel" onclick="toggleService('${s.id}', this)">
+            <div class="svc-check">&#10003;</div>
             <div>
               <strong style="display:block; font-size:1.1rem; margin-bottom:5px; color:var(--primary);">${s.name}</strong>
               <span style="font-size:0.95rem; color:#666;">${s.duration_minutes} min</span>
@@ -326,16 +382,29 @@
       }
     }
 
+    /* ANTIGRAVITY UPGRADE: Step transition helper */
+    function showStep(show, hide1, hide2) {
+      if(hide1) hide1.style.display = 'none';
+      if(hide2) hide2.style.display = 'none';
+      show.style.display = 'block';
+      show.classList.remove('step-enter');
+      void show.offsetWidth;
+      show.classList.add('step-enter');
+    }
     function nextToStep2() {
       if(selectedServicesIds.length === 0) { bookingMessage('Elige al menos un servicio.'); return; }
       document.getElementById('booking-msg').style.display = 'none';
-      document.getElementById('book-step-1').style.display = 'none';
-      document.getElementById('book-step-2').style.display = 'block';
+      showStep(
+        document.getElementById('book-step-2'),
+        document.getElementById('book-step-1'), null
+      );
       generateDayPicker();
     }
     function backToStep1() {
-      document.getElementById('book-step-2').style.display = 'none';
-      document.getElementById('book-step-1').style.display = 'block';
+      showStep(
+        document.getElementById('book-step-1'),
+        document.getElementById('book-step-2'), null
+      );
     }
 
     function generateDayPicker() {
@@ -389,12 +458,16 @@
     function nextToStep3() {
       if(!selectedSlot) { bookingMessage('Elige un horario disponible.'); return; }
       document.getElementById('booking-msg').style.display = 'none';
-      document.getElementById('book-step-2').style.display = 'none';
-      document.getElementById('book-step-3').style.display = 'block';
+      showStep(
+        document.getElementById('book-step-3'),
+        document.getElementById('book-step-2'), null
+      );
     }
     function backToStep2() {
-      document.getElementById('book-step-3').style.display = 'none';
-      document.getElementById('book-step-2').style.display = 'block';
+      showStep(
+        document.getElementById('book-step-2'),
+        document.getElementById('book-step-3'), null
+      );
     }
 
     async function confirmBooking() {

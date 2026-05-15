@@ -127,8 +127,17 @@
     }
 
     function showTab(tab, link) {
+      /* ANTIGRAVITY UPGRADE: Tab fade-in animation */
       ['dashboard', 'master-calendar', 'clientes', 'insights'].forEach(id => {
-        document.getElementById('tab-' + id).style.display = id === tab ? 'block' : 'none';
+        const el = document.getElementById('tab-' + id);
+        if (id === tab) {
+          el.style.display = 'block';
+          el.classList.remove('tab-panel-active');
+          void el.offsetWidth;
+          el.classList.add('tab-panel-active');
+        } else {
+          el.style.display = 'none';
+        }
       });
       document.querySelectorAll('.sidebar-nav a').forEach(el => el.classList.remove('active'));
       if(link) link.classList.add('active');
@@ -136,14 +145,35 @@
 
     const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
+    /* ANTIGRAVITY UPGRADE: CountUp animation */
+    function countUp(el, target, prefix = '', suffix = '', duration = 900) {
+      el.classList.remove('value-pop');
+      void el.offsetWidth;
+      el.classList.add('value-pop');
+      const start = performance.now();
+      function update(now) {
+        const p = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - p, 3);
+        el.textContent = prefix + Math.floor(eased * target).toLocaleString('es-MX') + suffix;
+        if (p < 1) requestAnimationFrame(update);
+        else el.textContent = prefix + Number(target).toLocaleString('es-MX') + suffix;
+      }
+      requestAnimationFrame(update);
+    }
+
     async function loadStats() {
+      /* ANTIGRAVITY UPGRADE: Skeleton while loading */
+      ['stat-citas','stat-ingresos','stat-clientes'].forEach(id => {
+        const el = document.getElementById(id);
+        el.innerHTML = '<div class="skeleton-block" style="width:60px;height:36px;border-radius:8px;"></div>';
+      });
       const res = await fetch('api/admin/stats.php');
       if(res.status === 401 || res.status === 403) { window.location.href = 'index.html#login'; return; }
       const data = await res.json();
       if(!data.success) return;
-      document.getElementById('stat-citas').textContent = data.appointments_today;
-      document.getElementById('stat-ingresos').textContent = '$' + Number(data.projected_income).toLocaleString('es-MX');
-      document.getElementById('stat-clientes').textContent = data.new_clients_today;
+      setTimeout(() => countUp(document.getElementById('stat-citas'), data.appointments_today), 100);
+      setTimeout(() => countUp(document.getElementById('stat-ingresos'), data.projected_income, '$'), 200);
+      setTimeout(() => countUp(document.getElementById('stat-clientes'), data.new_clients_today), 300);
     }
 
     async function loadMonthAppointments() {
@@ -212,7 +242,12 @@
 
     async function loadClients() {
       const box = document.getElementById('clients-list');
-      box.textContent = 'Cargando clientas...';
+      /* ANTIGRAVITY UPGRADE: Skeleton loader */
+      box.innerHTML = [1,2,3].map(() =>
+        `<div class="skeleton-card">
+          <div class="skeleton-block skeleton-line w-70"></div>
+          <div class="skeleton-block skeleton-line w-40"></div>
+        </div>`).join('');
       const res = await fetch('api/clients/list.php');
       const data = await res.json();
       if(!data.success || !data.clients.length) {
@@ -229,16 +264,22 @@
 
     async function loadInsights() {
       const box = document.getElementById('insights-list');
-      box.textContent = 'Cargando oportunidades...';
+      /* ANTIGRAVITY UPGRADE: Skeleton loader */
+      box.innerHTML = [1,2,3].map(() =>
+        `<div class="skeleton-card">
+          <div class="skeleton-block skeleton-line w-full"></div>
+          <div class="skeleton-block skeleton-line w-70"></div>
+          <div class="skeleton-block skeleton-line w-40"></div>
+        </div>`).join('');
       const res = await fetch('api/admin/insights.php');
       const data = await res.json();
       if(!data.success) {
         box.innerHTML = '<p class="empty-state">No se pudo cargar la inteligencia de retencion.</p>';
         return;
       }
-      document.getElementById('ins-dormidas').textContent = data.summary.dormidas;
-      document.getElementById('ins-retoque').textContent = data.summary.listas_para_retoque;
-      document.getElementById('ins-ritmo').textContent = data.summary.en_ritmo;
+      setTimeout(() => countUp(document.getElementById('ins-dormidas'),  data.summary.dormidas), 100);
+      setTimeout(() => countUp(document.getElementById('ins-retoque'), data.summary.listas_para_retoque), 200);
+      setTimeout(() => countUp(document.getElementById('ins-ritmo'),   data.summary.en_ritmo), 300);
       if(!data.insights.length) {
         box.innerHTML = '<p class="empty-state">Aun no hay historial suficiente para detectar oportunidades.</p>';
         return;
@@ -256,12 +297,18 @@
       }).join('');
     }
 
-    function notify(message) {
+    /* ANTIGRAVITY UPGRADE: Typed toast with slide-up/fade-out animation */
+    function notify(message, type = 'info') {
+      const icons = { success: '✓', error: '✕', info: 'ℹ' };
       const toast = document.createElement('div');
-      toast.className = 'toast';
-      toast.textContent = message;
+      toast.className = `toast toast-${type}`;
+      toast.innerHTML = `<span style="font-size:1rem">${icons[type] || '●'}</span><span>${message}</span>`;
       document.body.appendChild(toast);
-      setTimeout(() => toast.remove(), 3200);
+      requestAnimationFrame(() => requestAnimationFrame(() => toast.classList.add('toast-show')));
+      setTimeout(() => {
+        toast.classList.remove('toast-show');
+        toast.addEventListener('transitionend', () => toast.remove(), { once: true });
+      }, 3200);
     }
 
     requireAdminSession().then(loadStats);
