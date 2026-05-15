@@ -78,15 +78,34 @@
     }
 
     function showTab(tab, link) {
-      document.getElementById('tab-agenda').style.display = tab === 'agenda' ? 'block' : 'none';
-      document.getElementById('tab-finanzas').style.display = tab === 'finanzas' ? 'block' : 'none';
+      /* ANTIGRAVITY UPGRADE: Tab fade-in animation */
+      ['agenda','finanzas'].forEach(id => {
+        const el = document.getElementById('tab-' + id);
+        if (id === tab) {
+          el.style.display = 'block';
+          el.classList.remove('tab-panel-active');
+          void el.offsetWidth;
+          el.classList.add('tab-panel-active');
+        } else {
+          el.style.display = 'none';
+        }
+      });
       document.querySelectorAll('.sidebar-nav a').forEach(el => el.classList.remove('active'));
       if(link) link.classList.add('active');
     }
 
     async function loadToday() {
       const list = document.getElementById('agenda-list');
-      list.textContent = 'Cargando agenda...';
+      /* ANTIGRAVITY UPGRADE: Skeleton while loading */
+      list.innerHTML = [1,2,3].map(() =>
+        `<div class="skeleton-card" style="display:grid;grid-template-columns:90px 1fr auto;gap:16px;align-items:center;">
+          <div class="skeleton-block skeleton-line w-full" style="height:28px;"></div>
+          <div>
+            <div class="skeleton-block skeleton-line w-70"></div>
+            <div class="skeleton-block skeleton-line w-40"></div>
+          </div>
+          <div class="skeleton-block" style="width:70px;height:28px;border-radius:999px;"></div>
+        </div>`).join('');
       const res = await fetch('api/manicurist/today.php');
       const data = await res.json();
       if(!data.success) {
@@ -96,7 +115,12 @@
       document.getElementById('today-count').textContent = data.appointments.length;
       document.getElementById('tips-today').textContent = '$' + Number(data.tips_today || 0).toLocaleString('es-MX');
       if(!data.appointments.length) {
-        list.innerHTML = '<p class="empty-state">Sin citas para hoy.</p>';
+        /* ANTIGRAVITY UPGRADE: Branded empty state */
+        list.innerHTML = `<div style="text-align:center;padding:40px 20px;">
+          <div style="font-size:3rem;margin-bottom:12px;">&#9728;</div>
+          <p style="font-weight:800;color:var(--primary);font-size:1.1rem;">Dia libre hoy</p>
+          <p style="color:#666;margin-top:6px;">No hay citas agendadas. ¡Disfruta tu dia!</p>
+        </div>`;
         return;
       }
       list.innerHTML = data.appointments.map(app => {
@@ -126,12 +150,18 @@
       }
     });
 
-    function notify(message) {
+    /* ANTIGRAVITY UPGRADE: Typed toast with slide-up/fade-out animation */
+    function notify(message, type = 'info') {
+      const icons = { success: '✓', error: '✕', info: 'ℹ' };
       const toast = document.createElement('div');
-      toast.className = 'toast';
-      toast.textContent = message;
+      toast.className = `toast toast-${type}`;
+      toast.innerHTML = `<span style="font-size:1rem">${icons[type] || '●'}</span><span>${message}</span>`;
       document.body.appendChild(toast);
-      setTimeout(() => toast.remove(), 3200);
+      requestAnimationFrame(() => requestAnimationFrame(() => toast.classList.add('toast-show')));
+      setTimeout(() => {
+        toast.classList.remove('toast-show');
+        toast.addEventListener('transitionend', () => toast.remove(), { once: true });
+      }, 3200);
     }
 
     requireStaffSession().then(loadToday);
