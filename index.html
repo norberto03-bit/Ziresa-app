@@ -45,6 +45,19 @@
     .landing-hero h1 { font-size: clamp(3rem, 8vw, 5rem); margin-bottom: 20px; line-height: 1.08; text-shadow: 0 10px 20px rgba(92, 26, 112, 0.12); }
     .landing-hero p { font-size: clamp(1.05rem, 2.2vw, 1.35rem); max-width: 640px; margin-bottom: 42px; color: #4f4054; }
     .hero-actions { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+    .launch-section { padding: 30px 20px 82px; position: relative; z-index: 10; }
+    .launch-wrap { max-width: 1120px; margin: 0 auto; display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 22px; align-items: stretch; }
+    .launch-panel { padding: 28px; }
+    .service-preview-list { display: grid; gap: 10px; margin-top: 18px; }
+    .service-preview-row { display: flex; justify-content: space-between; gap: 14px; align-items: center; padding: 14px 16px; background: rgba(255,255,255,0.68); border: 1px solid rgba(255,255,255,0.92); border-radius: var(--radius-md); }
+    .service-preview-row strong { color: var(--primary); }
+    .service-preview-row span { color: #6a5c6d; font-size: 0.9rem; }
+    .price-pill { color: white; background: linear-gradient(135deg, var(--primary), var(--accent)); border-radius: 999px; padding: 7px 10px; font-weight: 900; white-space: nowrap; }
+    .promo-stack { display: grid; gap: 12px; }
+    .promo-card { padding: 20px; min-height: 130px; display: grid; align-content: end; color: white; background: radial-gradient(circle at top left, rgba(255,255,255,0.32), transparent 36%), linear-gradient(150deg, var(--primary), var(--accent)); border-radius: var(--radius-lg); box-shadow: var(--glass-shadow); }
+    .promo-card:nth-child(2) { background: radial-gradient(circle at top left, rgba(255,255,255,0.36), transparent 36%), linear-gradient(150deg, #2d0a31, #8e24aa); }
+    .promo-card h3, .promo-card p { color: white; }
+    .promo-card h3 { font-size: 1.55rem; margin-bottom: 4px; }
     .mission-section { padding: 80px 20px; position: relative; z-index: 10; }
     .mission-wrap { max-width: 1120px; margin: 0 auto; display: grid; grid-template-columns: 1.08fr 0.92fr; gap: 28px; align-items: stretch; }
     .mission-copy { padding: 38px; }
@@ -64,9 +77,16 @@
     .club-card h3 { margin-bottom: 12px; font-size: 1.5rem; }
     .login-section { padding: 80px 20px 120px; position: relative; z-index:10; }
     .login-card { max-width: 450px; margin: 0 auto; padding: 40px 32px; }
+    .location-section { padding: 80px 20px; position: relative; z-index: 10; }
+    .location-wrap { max-width: 1120px; margin: 0 auto; display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 24px; align-items: stretch; }
+    .location-card { padding: 32px; }
+    .map-panel { min-height: 360px; padding: 28px; display: grid; align-content: end; background: linear-gradient(135deg, rgba(92,26,112,0.94), rgba(255,64,129,0.78)), repeating-linear-gradient(45deg, rgba(255,255,255,0.14) 0 1px, transparent 1px 18px); color: white; border-radius: var(--radius-lg); box-shadow: var(--glass-shadow); }
+    .map-panel h3, .map-panel p { color: white; }
+    .map-panel h3 { font-size: 2rem; margin-bottom: 10px; }
     @media (max-width: 860px) {
       .app-header { position: relative; align-items: flex-start; flex-direction: column; }
       .app-nav { width: 100%; overflow-x: auto; padding-bottom: 4px; }
+      .launch-wrap, .location-wrap { grid-template-columns: 1fr; }
       .mission-wrap { grid-template-columns: 1fr; }
       .mission-copy { padding: 26px; }
     }
@@ -80,8 +100,10 @@
     <a class="brand-wordmark" href="index.html">Ziresa Studio</a>
     <nav class="app-nav" aria-label="Principal">
       <a href="#servicios">Servicios</a>
+      <a href="#promos">Promos</a>
+      <a href="#ubicacion">Ubicacion</a>
       <a href="#club">Club</a>
-      <a href="#login">Acceso</a>
+      <a href="#login">Clientas</a>
       <button class="btn btn-primary" onclick="openBookingModal()">Agendar</button>
     </nav>
   </header>
@@ -93,6 +115,30 @@
     <div class="hero-actions">
       <button class="btn btn-primary" onclick="openBookingModal()">Agendar Ahora</button>
       <a href="#login" class="btn btn-outline">Mi Club Ziresa</a>
+    </div>
+  </section>
+
+  <section class="launch-section reveal" id="promos">
+    <div class="launch-wrap">
+      <div class="launch-panel glass-panel">
+        <div class="section-eyebrow">Servicios y agenda</div>
+        <h2 style="font-size: clamp(2rem, 4vw, 3rem); line-height:1.05;">Elige tu servicio, confirma horario y entra al Club.</h2>
+        <p style="margin-top:14px;">La agenda digital conecta servicios, disponibilidad y perfil de clienta para que cada cita deje historial, puntos y seguimiento.</p>
+        <div id="service-preview-list" class="service-preview-list">
+          <div class="empty-state">Cargando servicios destacados...</div>
+        </div>
+        <button class="btn btn-primary" style="margin-top:22px;" onclick="openBookingModal()">Ver horarios disponibles</button>
+      </div>
+      <div class="promo-stack">
+        <article class="promo-card">
+          <h3>Combo Mirada Ziresa</h3>
+          <p>Lifting de pesta&ntilde;as + laminado de cejas para abrir mirada con acabado natural.</p>
+        </article>
+        <article class="promo-card">
+          <h3>Club de Retoque</h3>
+          <p>Recordatorios inteligentes para volver cuando tus u&ntilde;as, cejas o pesta&ntilde;as lo necesitan.</p>
+        </article>
+      </div>
     </div>
   </section>
 
@@ -114,6 +160,31 @@
         <div class="style-tags" id="style-tags-container">
           <span>clean</span><span>bold</span><span>coquette</span><span>mirada natural</span><span>evento</span>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="location-section reveal" id="ubicacion">
+    <div class="location-wrap">
+      <div class="location-card glass-panel">
+        <div class="section-eyebrow">Ubicacion</div>
+        <h2 style="font-size: clamp(2rem, 4vw, 3rem); line-height:1.05;">Ziresa vive en Cd. Satelite, Monterrey.</h2>
+        <p style="margin-top:14px;">Agenda desde la app y llega con tu servicio, horario y preferencias ya guardadas.</p>
+        <div class="mini-grid" style="margin-top:22px;">
+          <div class="info-card">
+            <h4>Direccion</h4>
+            <p>Av. Eugenio Garza Sada 6518, Local 4, Cd. Satelite, Monterrey.</p>
+          </div>
+          <div class="info-card">
+            <h4>Antes de llegar</h4>
+            <p>Trae referencias de color, dise&ntilde;o o acabado. La app las convierte en memoria de estilo.</p>
+          </div>
+        </div>
+        <a class="btn btn-outline" style="margin-top:22px;" href="https://www.google.com/maps/search/?api=1&query=Av.%20Eugenio%20Garza%20Sada%206518%20Local%204%20Cd.%20Satelite%20Monterrey" target="_blank" rel="noopener">Abrir mapa</a>
+      </div>
+      <div class="map-panel">
+        <h3>Agenda + ubicacion + club</h3>
+        <p>Una experiencia conectada: reserva, llega, suma puntos y conserva tu historial beauty.</p>
       </div>
     </div>
   </section>
@@ -322,6 +393,31 @@
       } catch (e) {}
     }
 
+    async function loadServicePreview() {
+      const box = document.getElementById('service-preview-list');
+      if(!box) return;
+      try {
+        const res = await fetch('api/services/list.php');
+        const data = await res.json();
+        const services = (data.services || []).slice(0, 5);
+        if(!services.length) {
+          box.innerHTML = '<p class="empty-state">Pronto veras aqui el menu de servicios.</p>';
+          return;
+        }
+        box.innerHTML = services.map(s => `
+          <div class="service-preview-row">
+            <div>
+              <strong>${s.name}</strong>
+              <span>${s.duration_minutes} min · ${s.points_reward || 0} puntos Club</span>
+            </div>
+            <div class="price-pill">$${s.price}</div>
+          </div>
+        `).join('');
+      } catch (e) {
+        box.innerHTML = '<p class="empty-state">No se pudieron cargar los servicios.</p>';
+      }
+    }
+
     function openBookingModal() {
       document.getElementById('booking-modal').classList.add('active');
       loadServicesForModal();
@@ -511,6 +607,7 @@
       }
     }
     loadPublicSettings();
+    loadServicePreview();
     if('serviceWorker' in navigator) {
       window.addEventListener('load', () => navigator.serviceWorker.register('service-worker.js').catch(() => {}));
     }

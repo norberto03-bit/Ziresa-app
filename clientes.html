@@ -19,10 +19,11 @@
     <aside class="sidebar">
       <div class="sidebar-logo">Club Ziresa</div>
       <ul class="sidebar-nav">
-        <li><a href="#" class="active" onclick="showTab('inicio', this)">Mi Progreso</a></li>
-        <li><a href="#" onclick="showTab('feed', this)">Mi Galeria</a></li>
-        <li><a href="#" onclick="showTab('perfil', this)">Preferencias</a></li>
-        <li><a href="#" onclick="logout()">Salir</a></li>
+        <li><a href="#" class="active" onclick="showTab('inicio', this)"><span class="nav-icon">IN</span>Inicio</a></li>
+        <li><a href="#" onclick="showTab('agenda', this)"><span class="nav-icon">AG</span>Agenda</a></li>
+        <li><a href="#" onclick="showTab('feed', this)"><span class="nav-icon">GL</span>Galeria</a></li>
+        <li><a href="#" onclick="showTab('perfil', this)"><span class="nav-icon">PF</span>Perfil</a></li>
+        <li><a href="#" onclick="showTab('info', this)"><span class="nav-icon">IF</span>Info</a></li>
       </ul>
     </aside>
 
@@ -53,6 +54,40 @@
             <a class="btn btn-outline" href="index.html">Agendar</a>
           </div>
         </div>
+        <div class="mini-grid" style="margin-top:20px;">
+          <div class="info-card">
+            <h4>Tu siguiente mejor paso</h4>
+            <p id="smart-next-step">Cargando recomendacion personalizada...</p>
+          </div>
+          <div class="info-card">
+            <h4>Beneficio activo</h4>
+            <p id="smart-benefit">Tus puntos y visitas desbloquean recompensas automaticas.</p>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-agenda" style="display: none;">
+        <h2>Agenda y Seguimiento</h2>
+        <p style="color:#666; margin-top:10px;">Tu proxima cita, preparacion y regreso ideal.</p>
+        <div class="mini-grid" style="margin-top:20px;">
+          <div class="info-card">
+            <h4>Antes de tu cita</h4>
+            <ul style="padding-left:18px;">
+              <li>Guarda 2 o 3 referencias de estilo.</li>
+              <li>Llega con manos limpias y sin crema pesada.</li>
+              <li>Si vienes a mirada, evita mascara o aceites.</li>
+            </ul>
+          </div>
+          <div class="info-card">
+            <h4>Ventanas de retoque</h4>
+            <p>U&ntilde;as: 2 a 3 semanas. Lifting: 5 a 7 semanas. Cejas: 4 a 6 semanas.</p>
+          </div>
+          <div class="info-card">
+            <h4>Confirmaciones</h4>
+            <p>La app guarda tu cita; Ziresa puede confirmar detalles finales por WhatsApp.</p>
+          </div>
+        </div>
+        <a class="btn btn-primary" style="margin-top:24px;" href="index.html">Agendar otra cita</a>
       </div>
 
       <div id="tab-feed" style="display: none;">
@@ -73,6 +108,33 @@
           <h4 style="color:var(--primary);">Resumen</h4>
           <p style="margin-top:10px; color:#555;" id="client-summary">Cargando tu historial...</p>
         </div>
+        <div class="prefs-card">
+          <h4 style="color:var(--primary);">Privacidad y trato</h4>
+          <p style="margin-top:10px; color:#555;">Ziresa puede guardar notas utiles de estilo, cuidados y preferencias para darte una atencion mas humana en futuras visitas.</p>
+        </div>
+        <button class="btn btn-outline" style="margin-top:20px;" onclick="logout()">Cerrar sesion</button>
+      </div>
+
+      <div id="tab-info" style="display: none;">
+        <h2>Info Util Ziresa</h2>
+        <div class="mini-grid" style="margin-top:20px;">
+          <div class="info-card">
+            <h4>Cuidados de u&ntilde;as</h4>
+            <p>Evita usar tus u&ntilde;as como herramienta, hidrata cuticula y agenda retoque antes de que el crecimiento cause desprendimiento.</p>
+          </div>
+          <div class="info-card">
+            <h4>Lifting de pesta&ntilde;as</h4>
+            <p>Las primeras 24 horas evita vapor, agua directa, aceites y mascara para cuidar la curva.</p>
+          </div>
+          <div class="info-card">
+            <h4>Laminado de cejas</h4>
+            <p>Peina suavemente, hidrata segun indicacion y evita exfoliantes fuertes en la zona al inicio.</p>
+          </div>
+          <div class="info-card">
+            <h4>Ubicacion</h4>
+            <p>Av. Eugenio Garza Sada 6518, Local 4, Cd. Satelite, Monterrey.</p>
+          </div>
+        </div>
       </div>
     </main>
   </div>
@@ -80,7 +142,7 @@
   <script>
     function showTab(tab, link) {
       /* ANTIGRAVITY UPGRADE: Tab fade-in animation */
-      ['inicio', 'feed', 'perfil'].forEach(id => {
+      ['inicio', 'agenda', 'feed', 'perfil', 'info'].forEach(id => {
         const el = document.getElementById('tab-' + id);
         if (id === tab) {
           el.style.display = 'block';
@@ -149,6 +211,16 @@
           favList.innerHTML = '<li>Aun no hay servicios favoritos.</li>';
         }
         document.getElementById('client-summary').textContent = `${visits} visitas registradas y ${data.visits_count || 0} citas completadas.`;
+        document.getElementById('smart-next-step').textContent = visits >= 10
+          ? 'Estas en nivel VIP: prioriza tus horarios favoritos y servicios de mantenimiento.'
+          : visits >= 5
+            ? 'Ya desbloqueaste ritmo de clienta frecuente. Agenda tu retoque antes de perder continuidad.'
+            : 'Sigue acumulando visitas para llegar a tu primer beneficio fuerte del Club.';
+        document.getElementById('smart-benefit').textContent = visits >= 10
+          ? 'Tienes acceso a beneficio de visita 10 si aun no lo has usado.'
+          : visits >= 5
+            ? 'Visita 5: revisa si tienes 20% disponible.'
+            : `Te faltan ${Math.max(0, 5 - visits)} visitas para el primer beneficio.`;
 
         /* ANTIGRAVITY UPGRADE: Gallery with skeleton placeholders */
         const gallery = data.gallery || [];

@@ -24,17 +24,23 @@
     <aside class="sidebar">
       <div class="sidebar-logo">Ziresa Admin</div>
       <ul class="sidebar-nav">
-        <li><a href="#" class="active" onclick="showTab('dashboard', this); loadStats();">Panel Principal</a></li>
-        <li><a href="#" onclick="showTab('master-calendar', this); renderCalendar();">Master Calendar</a></li>
-        <li><a href="#" onclick="showTab('clientes', this); loadClients();">Gestion de Clientes</a></li>
-        <li><a href="#" onclick="showTab('insights', this); loadInsights();">Retencion</a></li>
-        <li><a href="#" onclick="logout()">Cerrar Sesion</a></li>
+        <li><a href="#" class="active" onclick="showTab('dashboard', this); loadStats();"><span class="nav-icon">DB</span>Panel</a></li>
+        <li><a href="#" onclick="showTab('master-calendar', this); renderCalendar();"><span class="nav-icon">AG</span>Agenda</a></li>
+        <li><a href="#" onclick="showTab('clientes', this); loadClients();"><span class="nav-icon">CL</span>Clientas</a></li>
+        <li><a href="#" onclick="showTab('finance', this); loadFinance();"><span class="nav-icon">FI</span>Finanzas</a></li>
+        <li><a href="#" onclick="showTab('insights', this); loadInsights();"><span class="nav-icon">RT</span>Retencion</a></li>
       </ul>
     </aside>
 
     <main class="main-content">
       <div id="tab-dashboard">
-        <h2>Dashboard en Vivo</h2>
+        <div class="admin-section-head">
+          <div>
+            <h2>Dashboard en Vivo</h2>
+            <p>Vista rapida del dia: citas, dinero proyectado, ingreso confirmado y nuevas clientas.</p>
+          </div>
+          <button class="btn btn-outline" onclick="logout()">Cerrar sesion</button>
+        </div>
         <div class="dash-grid" style="margin-top: 30px;">
           <div class="dash-card">
             <h4>Citas Hoy</h4>
@@ -47,6 +53,10 @@
           <div class="dash-card">
             <h4>Nuevos Miembros Club</h4>
             <div class="value" id="stat-clientes">0</div>
+          </div>
+          <div class="dash-card">
+            <h4>Ingreso Confirmado</h4>
+            <div class="value" id="stat-confirmado">$0</div>
           </div>
         </div>
       </div>
@@ -69,6 +79,64 @@
         <div class="glass-panel" style="margin-top:20px; padding:20px;">
           <p>Lista de clientas y conteo de visitas para fidelizacion.</p>
           <div id="clients-list" class="data-list" style="margin-top:18px;">Cargando clientas...</div>
+        </div>
+      </div>
+
+      <div id="tab-finance" style="display:none;">
+        <div class="admin-section-head">
+          <div>
+            <h2>Panel Financiero</h2>
+            <p>Inspirado en N&oacute;madas: las citas proyectan, pero solo los pagos registrados cuentan como ingreso confirmado.</p>
+          </div>
+          <button class="btn btn-primary" onclick="loadFinance()">Actualizar</button>
+        </div>
+        <div class="dash-grid">
+          <div class="dash-card">
+            <h4>Ingresos Confirmados</h4>
+            <div class="value" id="fin-income">$0</div>
+          </div>
+          <div class="dash-card">
+            <h4>Egresos</h4>
+            <div class="value" id="fin-expenses">$0</div>
+          </div>
+          <div class="dash-card">
+            <h4>Utilidad</h4>
+            <div class="value" id="fin-profit">$0</div>
+          </div>
+        </div>
+        <div class="glass-panel" style="margin-top:22px; padding:22px;">
+          <h3 style="margin-bottom:14px;">Registrar movimiento</h3>
+          <form id="finance-form" class="finance-form">
+            <div class="form-group">
+              <label class="form-label" for="fin-type">Tipo</label>
+              <select id="fin-type" class="form-control">
+                <option value="ingreso">Ingreso confirmado</option>
+                <option value="egreso">Egreso</option>
+                <option value="propina">Propina</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="fin-method">Metodo</label>
+              <select id="fin-method" class="form-control">
+                <option value="efectivo">Efectivo</option>
+                <option value="tarjeta">Tarjeta</option>
+                <option value="transferencia">Transferencia</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="fin-amount">Monto</label>
+              <input id="fin-amount" class="form-control" type="number" min="1" step="1" placeholder="500">
+            </div>
+            <div class="form-group" style="grid-column:1/-1;">
+              <label class="form-label" for="fin-description">Descripcion</label>
+              <input id="fin-description" class="form-control" type="text" placeholder="Ej. Gelish pagado, renta, insumos, propina">
+            </div>
+            <button class="btn btn-primary" type="submit" style="grid-column:1/-1;">Guardar movimiento</button>
+          </form>
+        </div>
+        <div class="glass-panel" style="margin-top:22px; padding:22px;">
+          <h3>Ultimos movimientos</h3>
+          <div id="finance-list" class="finance-list">Cargando movimientos...</div>
         </div>
       </div>
 
@@ -128,7 +196,7 @@
 
     function showTab(tab, link) {
       /* ANTIGRAVITY UPGRADE: Tab fade-in animation */
-      ['dashboard', 'master-calendar', 'clientes', 'insights'].forEach(id => {
+      ['dashboard', 'master-calendar', 'clientes', 'finance', 'insights'].forEach(id => {
         const el = document.getElementById('tab-' + id);
         if (id === tab) {
           el.style.display = 'block';
@@ -163,7 +231,7 @@
 
     async function loadStats() {
       /* ANTIGRAVITY UPGRADE: Skeleton while loading */
-      ['stat-citas','stat-ingresos','stat-clientes'].forEach(id => {
+      ['stat-citas','stat-ingresos','stat-clientes','stat-confirmado'].forEach(id => {
         const el = document.getElementById(id);
         el.innerHTML = '<div class="skeleton-block" style="width:60px;height:36px;border-radius:8px;"></div>';
       });
@@ -174,6 +242,7 @@
       setTimeout(() => countUp(document.getElementById('stat-citas'), data.appointments_today), 100);
       setTimeout(() => countUp(document.getElementById('stat-ingresos'), data.projected_income, '$'), 200);
       setTimeout(() => countUp(document.getElementById('stat-clientes'), data.new_clients_today), 300);
+      setTimeout(() => countUp(document.getElementById('stat-confirmado'), data.income_today || 0, '$'), 400);
     }
 
     async function loadMonthAppointments() {
@@ -296,6 +365,67 @@
         </div>`;
       }).join('');
     }
+
+    async function loadFinance() {
+      const list = document.getElementById('finance-list');
+      list.innerHTML = [1,2,3].map(() =>
+        `<div class="skeleton-card">
+          <div class="skeleton-block skeleton-line w-70"></div>
+          <div class="skeleton-block skeleton-line w-40"></div>
+        </div>`).join('');
+      try {
+        const res = await fetch('api/finances/list.php');
+        if(res.status === 401 || res.status === 403) { window.location.href = 'index.html#login'; return; }
+        const data = await res.json();
+        if(!data.success) throw new Error(data.error || 'No se pudo cargar finanzas');
+        countUp(document.getElementById('fin-income'), data.summary.income, '$');
+        countUp(document.getElementById('fin-expenses'), data.summary.expenses, '$');
+        countUp(document.getElementById('fin-profit'), data.summary.profit, '$');
+        if(!data.records.length) {
+          list.innerHTML = '<p class="empty-state">Aun no hay movimientos. Registra ingresos confirmados y egresos para ver utilidad real.</p>';
+          return;
+        }
+        list.innerHTML = data.records.map(item => {
+          const sign = item.type === 'egreso' ? '-' : '+';
+          const klass = item.type === 'egreso' ? 'money-negative' : 'money-positive';
+          return `<div class="list-row">
+            <div>
+              <strong>${item.description || item.type}</strong>
+              <span>${item.date || ''} · ${item.method || 'metodo'} · ${item.type}</span>
+            </div>
+            <div class="${klass}">${sign}$${Number(item.amount || 0).toLocaleString('es-MX')}</div>
+          </div>`;
+        }).join('');
+      } catch (e) {
+        list.innerHTML = '<p class="empty-state">No se pudieron cargar las finanzas.</p>';
+      }
+    }
+
+    document.getElementById('finance-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = {
+        type: document.getElementById('fin-type').value,
+        method: document.getElementById('fin-method').value,
+        amount: Number(document.getElementById('fin-amount').value || 0),
+        description: document.getElementById('fin-description').value.trim()
+      };
+      if(payload.amount <= 0) { notify('Captura un monto valido.', 'error'); return; }
+      try {
+        const res = await fetch('api/finances/add.php', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if(!res.ok || !data.success) throw new Error(data.error || 'No se pudo guardar');
+        document.getElementById('finance-form').reset();
+        notify('Movimiento guardado.', 'success');
+        loadFinance();
+        loadStats();
+      } catch (err) {
+        notify(err.message || 'Error al guardar movimiento.', 'error');
+      }
+    });
 
     /* ANTIGRAVITY UPGRADE: Typed toast with slide-up/fade-out animation */
     function notify(message, type = 'info') {

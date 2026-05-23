@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../../core/json-db.php';
 require_once __DIR__ . '/../../core/auth.php';
 
-$user = require_auth(['admin1', 'manicurist']);
+$user = require_auth(['admin1', 'admin2', 'manicurist']);
 $req = request_json();
 
 $type = $req['type'] ?? 'ingreso'; // ingreso, egreso, propina
