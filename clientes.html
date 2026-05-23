@@ -20,6 +20,7 @@
       <div class="sidebar-logo">Club Ziresa</div>
       <ul class="sidebar-nav">
         <li><a href="#" class="active" onclick="showTab('inicio', this)"><span class="nav-icon">IN</span>Inicio</a></li>
+        <li><a href="#" onclick="showTab('wallet', this)"><span class="nav-icon">WL</span>Wallet</a></li>
         <li><a href="#" onclick="showTab('agenda', this)"><span class="nav-icon">AG</span>Agenda</a></li>
         <li><a href="#" onclick="showTab('feed', this)"><span class="nav-icon">GL</span>Galeria</a></li>
         <li><a href="#" onclick="showTab('perfil', this)"><span class="nav-icon">PF</span>Perfil</a></li>
@@ -43,7 +44,7 @@
             <div class="loyalty-milestone" id="m-10" style="left:100%;" title="Visita 10"></div>
           </div>
           <div class="progress-labels">
-            <span>Inicio</span><span>Visita 5: 20% off</span><span>Visita 10: 50% off</span>
+            <span>Inicio</span><span>Visita 5: 5% off</span><span>Visita 10: 10% off</span>
           </div>
           <div class="next-appointment">
             <div>
@@ -62,6 +63,39 @@
           <div class="info-card">
             <h4>Beneficio activo</h4>
             <p id="smart-benefit">Tus puntos y visitas desbloquean recompensas automaticas.</p>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-wallet" style="display: none;">
+        <h2>Tarjeta Cliente Frecuente</h2>
+        <p style="color:#666; margin-top:10px;">Tu tarjeta se sincroniza con tus visitas y beneficios del Club Ziresa.</p>
+        <div class="wallet-card" id="wallet-card" style="margin-top:20px;">
+          <div class="wallet-top">
+            <div>
+              <div class="wallet-brand">Ziresa</div>
+              <div class="wallet-label">Cliente Frecuente</div>
+            </div>
+            <div class="wallet-benefit" id="wallet-benefit">Cargando...</div>
+          </div>
+          <div>
+            <div class="wallet-label">Nombre de cliente</div>
+            <h3 class="wallet-client-name" id="wallet-name">...</h3>
+          </div>
+          <div class="wallet-metrics">
+            <div class="wallet-metric"><span class="wallet-label">Visita</span><strong id="wallet-visits">0</strong></div>
+            <div class="wallet-metric"><span class="wallet-label">Score</span><strong id="wallet-score">0</strong></div>
+            <div class="wallet-metric"><span class="wallet-label">Descuento</span><strong id="wallet-discount">0%</strong></div>
+          </div>
+          <div>
+            <div class="wallet-label" id="wallet-progress-label">Avance</div>
+            <div class="wallet-progress"><span id="wallet-progress-bar"></span></div>
+          </div>
+          <div class="wallet-stamps" id="wallet-stamps"></div>
+          <div class="wallet-actions">
+            <a class="btn btn-primary" href="index.html">Reservar siguiente cita</a>
+            <a class="btn btn-outline" href="api/wallet/pass.php" download>Descargar Wallet</a>
+            <a class="btn btn-outline" href="api/wallet/pass.php?format=json" download>Exportar JSON</a>
           </div>
         </div>
       </div>
@@ -142,7 +176,7 @@
   <script>
     function showTab(tab, link) {
       /* ANTIGRAVITY UPGRADE: Tab fade-in animation */
-      ['inicio', 'agenda', 'feed', 'perfil', 'info'].forEach(id => {
+      ['inicio', 'wallet', 'agenda', 'feed', 'perfil', 'info'].forEach(id => {
         const el = document.getElementById('tab-' + id);
         if (id === tab) {
           el.style.display = 'block';
@@ -179,6 +213,7 @@
         document.getElementById('client-name').textContent = data.client.name || 'Hermosa';
         document.getElementById('client-points').textContent = data.client.points || 0;
         const visits = parseInt(data.client.visits || 0);
+        const wallet = data.wallet || {};
         const percentage = visits <= 5 ? (visits / 5) * 80 : Math.min(100, 80 + (((visits - 5) / 5) * 20));
 
         /* ANTIGRAVITY UPGRADE: Loyalty bar — animate after a short delay for visual impact */
@@ -217,10 +252,11 @@
             ? 'Ya desbloqueaste ritmo de clienta frecuente. Agenda tu retoque antes de perder continuidad.'
             : 'Sigue acumulando visitas para llegar a tu primer beneficio fuerte del Club.';
         document.getElementById('smart-benefit').textContent = visits >= 10
-          ? 'Tienes acceso a beneficio de visita 10 si aun no lo has usado.'
+          ? 'Tienes acceso a 10% de descuento por visita 10.'
           : visits >= 5
-            ? 'Visita 5: revisa si tienes 20% disponible.'
+            ? 'Visita 5: tienes 5% de descuento activo.'
             : `Te faltan ${Math.max(0, 5 - visits)} visitas para el primer beneficio.`;
+        renderWallet(wallet, data.client);
 
         /* ANTIGRAVITY UPGRADE: Gallery with skeleton placeholders */
         const gallery = data.gallery || [];
@@ -236,6 +272,26 @@
       } catch (e) {
         console.error(e);
       }
+    }
+
+    function renderWallet(wallet, client) {
+      const visits = Number(wallet.visits || client.visits || 0);
+      const discount = Number(wallet.discount_percent || 0);
+      document.getElementById('wallet-name').textContent = wallet.name || client.name || 'Clienta Ziresa';
+      document.getElementById('wallet-visits').textContent = visits;
+      document.getElementById('wallet-score').textContent = wallet.score || 0;
+      document.getElementById('wallet-discount').textContent = `${discount}%`;
+      document.getElementById('wallet-benefit').textContent = wallet.benefit_label || 'Club Ziresa';
+      document.getElementById('wallet-progress-label').textContent = wallet.visits_to_next_goal > 0
+        ? `Te faltan ${wallet.visits_to_next_goal} visita(s) para tu siguiente meta`
+        : 'Meta activa desbloqueada';
+      document.getElementById('wallet-progress-bar').style.width = `${wallet.progress_percent || 0}%`;
+      const stamps = wallet.stamps || [];
+      document.getElementById('wallet-stamps').innerHTML = stamps.map(stamp => `
+        <div class="wallet-stamp ${stamp.reached ? 'reached' : ''}">
+          <span>${stamp.emoji || '♡'}</span><b>${stamp.number}</b>
+        </div>
+      `).join('');
     }
 
     loadClientData();

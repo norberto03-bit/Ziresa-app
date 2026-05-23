@@ -53,8 +53,8 @@ if($appointment_id && $type === 'ingreso') {
       if(($client['id'] ?? '') === $client_id) {
         $client['visits'] = ($client['visits'] ?? 0) + 1;
         $client['points'] = ($client['points'] ?? 0) + 10;
-        if($client['visits'] === 5) $client['discounts'][] = ['type' => '20_off', 'used' => false];
-        if($client['visits'] === 10) $client['discounts'][] = ['type' => '50_off', 'used' => false];
+        if($client['visits'] === 5) $client['discounts'][] = ['type' => '5_off', 'used' => false];
+        if($client['visits'] === 10) $client['discounts'][] = ['type' => '10_off', 'used' => false];
         break;
       }
     }

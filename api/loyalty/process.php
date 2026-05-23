@@ -33,11 +33,11 @@ foreach($clients as &$c) {
     $c['points'] = ($c['points'] ?? 0) + 10; // Basic points
     
     if($c['visits'] === 5) {
-      $response_msg = "¡Visita #5! Desbloqueó 20% de descuento automático.";
-      $c['discounts'][] = ['type' => '20_off', 'used' => false];
+      $response_msg = "¡Visita #5! Desbloqueó 5% de descuento automático.";
+      $c['discounts'][] = ['type' => '5_off', 'used' => false];
     } else if($c['visits'] === 10) {
-      $response_msg = "¡Visita #10! Desbloqueó 50% de descuento.";
-      $c['discounts'][] = ['type' => '50_off', 'used' => false];
+      $response_msg = "¡Visita #10! Desbloqueó 10% de descuento.";
+      $c['discounts'][] = ['type' => '10_off', 'used' => false];
     }
     break;
   }

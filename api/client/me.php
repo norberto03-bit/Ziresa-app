@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../../core/json-db.php';
 require_once __DIR__ . '/../../core/auth.php';
+require_once __DIR__ . '/../../core/loyalty.php';
 
 $user = require_auth(['client']);
 $client_id = $user['id'];
@@ -58,6 +59,7 @@ $gallery = $my_client['gallery'] ?? [];
 api_response([
   'success' => true,
   'client' => $my_client,
+  'wallet' => ziresa_loyalty_wallet($my_client),
   'next_appointment' => $next_appointment,
   'favorite_services' => $favorite_services,
   'gallery' => $gallery,

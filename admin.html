@@ -15,6 +15,8 @@
     .day-badge { font-size: 0.75rem; background: var(--accent); color: white; padding: 3px 6px; border-radius: 6px; margin-bottom: 2px; text-align: center; }
     .cal-controls { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 20px; }
     .cal-controls h3 { margin: 0; font-size: 1.5rem; text-align: center; }
+    .client-wallet-admin { align-items: stretch; }
+    .client-wallet-admin strong { font-size: 1.05rem; }
   </style>
 </head>
 <body>
@@ -75,9 +77,15 @@
       </div>
 
       <div id="tab-clientes" style="display:none;">
-        <h2>Club Ziresa - Clientes</h2>
+        <div class="admin-section-head">
+          <div>
+            <h2>Club Ziresa - Clientes</h2>
+            <p>Administra visitas, puntos y beneficios de la tarjeta frecuente sin abrir archivos JSON.</p>
+          </div>
+          <button class="btn btn-primary" onclick="loadClients()">Actualizar</button>
+        </div>
         <div class="glass-panel" style="margin-top:20px; padding:20px;">
-          <p>Lista de clientas y conteo de visitas para fidelizacion.</p>
+          <p>5 visitas desbloquean 5% de descuento. 10 visitas desbloquean 10% de descuento.</p>
           <div id="clients-list" class="data-list" style="margin-top:18px;">Cargando clientas...</div>
         </div>
       </div>
@@ -323,12 +331,55 @@
         box.innerHTML = '<p class="empty-state">Todavia no hay clientas registradas.</p>';
         return;
       }
-      box.innerHTML = data.clients.map(c => `
-        <div class="list-row">
-          <div><strong>${c.name || 'Clienta'}</strong><span>${c.phone || ''}</span></div>
-          <div>${c.visits || 0} visitas - ${c.points || 0} pts</div>
+      box.innerHTML = data.clients.map(c => {
+        const visits = Number(c.visits || 0);
+        const points = Number(c.points || 0);
+        const discount = visits >= 10 ? 10 : (visits >= 5 ? 5 : 0);
+        return `
+        <div class="list-row client-wallet-admin" data-client-id="${c.id}">
+          <div>
+            <strong>${c.name || 'Clienta'}</strong>
+            <span>${c.phone || ''} · ${points} pts · ${discount}% descuento</span>
+            <span>${c.loyalty_note || 'Sin nota de lealtad.'}</span>
+          </div>
+          <div class="client-visit-control">
+            <div class="visit-stepper">
+              <button type="button" onclick="adjustClientVisits('${c.id}', -1)">-</button>
+              <span id="visits-${c.id}">${visits}</span>
+              <button type="button" onclick="adjustClientVisits('${c.id}', 1)">+</button>
+            </div>
+            <button class="btn btn-outline" type="button" onclick="saveClientLoyalty('${c.id}')">Guardar</button>
+          </div>
         </div>
-      `).join('');
+      `}).join('');
+    }
+
+    function adjustClientVisits(clientId, delta) {
+      const el = document.getElementById('visits-' + clientId);
+      const current = Number(el.textContent || 0);
+      el.textContent = Math.max(0, current + delta);
+    }
+
+    async function saveClientLoyalty(clientId) {
+      const visits = Number(document.getElementById('visits-' + clientId).textContent || 0);
+      try {
+        const res = await fetch('api/clients/update_loyalty.php', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            client_id: clientId,
+            visits,
+            points: visits * 10,
+            note: visits >= 10 ? 'Beneficio 10% activo' : (visits >= 5 ? 'Beneficio 5% activo' : 'En progreso')
+          })
+        });
+        const data = await res.json();
+        if(!res.ok || !data.success) throw new Error(data.error || 'No se pudo actualizar');
+        notify('Tarjeta actualizada y sincronizada.', 'success');
+        loadClients();
+      } catch (err) {
+        notify(err.message || 'Error al actualizar clienta.', 'error');
+      }
     }
 
     async function loadInsights() {
