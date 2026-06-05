@@ -10,6 +10,11 @@
     .agenda-item { display: grid; grid-template-columns: 90px 1fr auto; gap: 16px; align-items: center; padding: 18px; background: rgba(255,255,255,0.68); border: 1px solid rgba(255,255,255,0.9); border-radius: 14px; }
     .agenda-time { color: var(--primary); font-size: 1.25rem; font-weight: 800; }
     .status-pill { padding: 6px 10px; border-radius: 999px; background: rgba(92,26,112,0.1); color: var(--primary); font-size: 0.82rem; font-weight: 800; white-space: nowrap; }
+    .staff-actions { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+    @media (max-width: 760px) {
+      .agenda-item { grid-template-columns: 1fr; }
+      .staff-actions { justify-content:flex-start; }
+    }
   </style>
 </head>
 <body>
@@ -127,10 +132,37 @@
         const services = (app.services || []).map(s => s.name).join(', ');
         return `<div class="agenda-item">
           <div class="agenda-time">${app.time}</div>
-          <div><strong>${app.client_name}</strong><span>${services}</span></div>
-          <div class="status-pill">${app.status || 'pendiente'}</div>
+          <div>
+            <strong>${app.client_name}</strong>
+            <span>${services}</span>
+            <span>${app.client_phone ? 'WhatsApp: ' + app.client_phone : ''}</span>
+          </div>
+          <div>
+            <div class="status-pill">${app.status || 'pendiente'}</div>
+            <div class="staff-actions" style="margin-top:10px;">
+              <button class="btn btn-outline" type="button" onclick="updateStaffStatus('${app.id}', 'confirmada')">Confirmar</button>
+              <button class="btn btn-outline" type="button" onclick="updateStaffStatus('${app.id}', 'en_proceso')">Iniciar</button>
+              <button class="btn btn-primary" type="button" onclick="updateStaffStatus('${app.id}', 'completada')">Finalizar</button>
+            </div>
+          </div>
         </div>`;
       }).join('');
+    }
+
+    async function updateStaffStatus(id, status) {
+      try {
+        const res = await fetch('api/appointments/update_status.php', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ appointment_id: id, status })
+        });
+        const data = await res.json();
+        if(!res.ok || !data.success) throw new Error(data.error || 'No se pudo actualizar.');
+        notify('Cita actualizada.', 'success');
+        loadToday();
+      } catch (err) {
+        notify(err.message || 'Error al actualizar cita.', 'error');
+      }
     }
 
     document.getElementById('tip-form').addEventListener('submit', async (e) => {

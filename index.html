@@ -129,7 +129,7 @@
         </div>
         <button class="btn btn-primary" style="margin-top:22px;" onclick="openBookingModal()">Ver horarios disponibles</button>
       </div>
-      <div class="promo-stack">
+      <div class="promo-stack" id="promo-stack">
         <article class="promo-card">
           <h3>Combo Mirada Ziresa</h3>
           <p>Lifting de pesta&ntilde;as + laminado de cejas para abrir mirada con acabado natural.</p>
@@ -147,7 +147,7 @@
       <div class="mission-copy glass-panel">
         <h2>Una app para recordar tu estilo, no solo tu cita.</h2>
         <p>Ziresa combina tecnica, creatividad y cuidado humano: manos, mirada y cejas con historial, recompensas y seguimiento para que cada visita se sienta personal.</p>
-        <div class="mission-list">
+        <div class="mission-list" id="trust-points-list">
           <div>Nail Art y gelish con preferencias guardadas.</div>
           <div>Lifting de pestañas y laminado de cejas con ventanas de retoque.</div>
           <div>Un espacio seguro, respetuoso e inclusivo para expresarte.</div>
@@ -390,7 +390,26 @@
           document.getElementById('hero-title').innerHTML = `${data.media.hero_title}<br><span class="text-gradient text-glow">belleza sin moldes</span>`;
         }
         if(data.media && data.media.hero_subtitle) document.getElementById('hero-subtitle').textContent = data.media.hero_subtitle;
+        renderPromotions(data.promotions || []);
+        renderTrustPoints(data.trust_points || (data.brand ? data.brand.values : []) || []);
       } catch (e) {}
+    }
+
+    function renderPromotions(promotions) {
+      const box = document.getElementById('promo-stack');
+      if(!box || !promotions.length) return;
+      box.innerHTML = promotions.slice(0, 3).map(promo => `
+        <article class="promo-card">
+          <h3>${promo.title || 'Promo Ziresa'}</h3>
+          <p>${promo.description || ''}</p>
+        </article>
+      `).join('');
+    }
+
+    function renderTrustPoints(points) {
+      const box = document.getElementById('trust-points-list');
+      if(!box || !points.length) return;
+      box.innerHTML = points.slice(0, 5).map(point => `<div>${typeof point === 'string' ? point : (point.text || '')}</div>`).join('');
     }
 
     async function loadServicePreview() {

@@ -58,9 +58,23 @@ Todos los endpoints deben usar `core/json-db.php` para leer/escribir JSON. No es
 5. `core/appointments.php` valida disponibilidad real.
 6. La cita se crea en `api/appointments/create_public.php`.
 7. La cita queda `pendiente_confirmacion_wa`.
-8. Admin confirma, cancela o gestiona desde `admin.html`.
+8. Admin confirma, inicia, completa o cancela desde `admin.html`.
 9. Staff consulta su agenda en `manicurista.html`.
 10. Al completar/pagar, se actualizan visitas, puntos y finanzas.
+
+## Estados oficiales de cita
+
+- `pendiente_confirmacion_wa`
+- `confirmada`
+- `en_proceso`
+- `completada`
+- `cancelada`
+
+El endpoint oficial para cambiar estado es:
+
+`api/appointments/update_status.php`
+
+Cuando una cita pasa a `completada`, `core/loyalty.php` sincroniza visitas, puntos, wallet e ingreso financiero una sola vez.
 
 ## Reglas criticas
 

@@ -43,7 +43,7 @@ foreach($appointments as $app) {
         $next_appointment = $app;
       }
     } else {
-      if($app['status'] === 'pagada' || $app['status'] === 'completada') {
+      if($app['status'] === 'completada') {
         $past_visits[] = $app;
       }
     }

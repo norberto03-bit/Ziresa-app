@@ -29,5 +29,26 @@
     "hero_image": "assets/hero.jpg",
     "hero_title": "Ziresa Studio",
     "hero_subtitle": "Tu club inteligente de Nail Art, lifting de pestañas y laminado de cejas."
-  }
+  },
+  "promotions": [
+    {
+      "title": "Combo Mirada Ziresa",
+      "description": "Lifting de pestañas + laminado de cejas para abrir mirada con acabado natural."
+    },
+    {
+      "title": "Club de Retoque",
+      "description": "Recordatorios inteligentes para volver cuando tus uñas, cejas o pestañas lo necesitan."
+    },
+    {
+      "title": "Tarjeta Cliente Frecuente",
+      "description": "Acumula visitas y desbloquea descuentos en tu visita 5 y visita 10."
+    }
+  ],
+  "trust_points": [
+    "Higiene, cuidado tecnico y agenda organizada.",
+    "Historial de estilo para no explicar lo mismo cada visita.",
+    "Trato seguro y respetuoso para mujeres y comunidad LGBT+.",
+    "Recordatorios de retoque y beneficios por volver.",
+    "Servicios de manos, mirada y cejas conectados a tu Club Ziresa."
+  ]
 }

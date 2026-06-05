@@ -28,3 +28,10 @@ Consulta `DEPLOY.md` para los pasos de cPanel/FTP.
 ## Arquitectura
 
 Consulta `ARCHITECTURE.md`.
+
+## Flujo operativo actual
+
+- Publico agenda desde `index.html`.
+- Admin opera citas desde `admin.html`.
+- Staff opera citas desde `manicurista.html`.
+- Completar una cita actualiza lealtad, wallet e ingresos.

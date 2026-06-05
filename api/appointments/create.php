@@ -36,7 +36,7 @@ $new_app = [
   'duration' => $total_duration,
   'services' => $selected_services,
   'price' => $total_price,
-  'status' => 'pendiente',
+  'status' => 'pendiente_confirmacion_wa',
   'created_at' => date('Y-m-d H:i:s')
 ];
 

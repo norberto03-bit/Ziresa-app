@@ -17,6 +17,10 @@
     .cal-controls h3 { margin: 0; font-size: 1.5rem; text-align: center; }
     .client-wallet-admin { align-items: stretch; }
     .client-wallet-admin strong { font-size: 1.05rem; }
+    .appointment-actions { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+    .status-chip { display:inline-flex; align-items:center; justify-content:center; min-height:28px; border-radius:999px; padding:4px 10px; font-size:.78rem; font-weight:900; background:rgba(92,26,112,.1); color:var(--primary); }
+    .status-chip.confirmada, .status-chip.completada { background:rgba(27,127,90,.12); color:var(--success); }
+    .status-chip.cancelada { background:rgba(198,40,40,.12); color:var(--danger); }
   </style>
 </head>
 <body>
@@ -28,6 +32,7 @@
       <ul class="sidebar-nav">
         <li><a href="#" class="active" onclick="showTab('dashboard', this); loadStats();"><span class="nav-icon">DB</span>Panel</a></li>
         <li><a href="#" onclick="showTab('master-calendar', this); renderCalendar();"><span class="nav-icon">AG</span>Agenda</a></li>
+        <li><a href="#" onclick="showTab('appointments', this); loadAppointments();"><span class="nav-icon">CT</span>Citas</a></li>
         <li><a href="#" onclick="showTab('clientes', this); loadClients();"><span class="nav-icon">CL</span>Clientas</a></li>
         <li><a href="#" onclick="showTab('finance', this); loadFinance();"><span class="nav-icon">FI</span>Finanzas</a></li>
         <li><a href="#" onclick="showTab('insights', this); loadInsights();"><span class="nav-icon">RT</span>Retencion</a></li>
@@ -87,6 +92,19 @@
         <div class="glass-panel" style="margin-top:20px; padding:20px;">
           <p>5 visitas desbloquean 5% de descuento. 10 visitas desbloquean 10% de descuento.</p>
           <div id="clients-list" class="data-list" style="margin-top:18px;">Cargando clientas...</div>
+        </div>
+      </div>
+
+      <div id="tab-appointments" style="display:none;">
+        <div class="admin-section-head">
+          <div>
+            <h2>Citas y Operacion</h2>
+            <p>Confirma, inicia, completa, cancela o registra pago sin tocar archivos JSON.</p>
+          </div>
+          <button class="btn btn-primary" onclick="loadAppointments()">Actualizar</button>
+        </div>
+        <div class="glass-panel" style="padding:20px;">
+          <div id="appointments-list" class="data-list">Cargando citas...</div>
         </div>
       </div>
 
@@ -204,7 +222,7 @@
 
     function showTab(tab, link) {
       /* ANTIGRAVITY UPGRADE: Tab fade-in animation */
-      ['dashboard', 'master-calendar', 'clientes', 'finance', 'insights'].forEach(id => {
+      ['dashboard', 'master-calendar', 'appointments', 'clientes', 'finance', 'insights'].forEach(id => {
         const el = document.getElementById('tab-' + id);
         if (id === tab) {
           el.style.display = 'block';
@@ -352,6 +370,92 @@
           </div>
         </div>
       `}).join('');
+    }
+
+    function appointmentStatusLabel(status) {
+      const labels = {
+        pendiente_confirmacion_wa: 'Pendiente WA',
+        pendiente: 'Pendiente',
+        confirmada: 'Confirmada',
+        en_proceso: 'En proceso',
+        completada: 'Completada',
+        cancelada: 'Cancelada'
+      };
+      return labels[status] || status || 'Pendiente';
+    }
+
+    async function loadAppointments() {
+      const box = document.getElementById('appointments-list');
+      box.innerHTML = [1,2,3].map(() => `<div class="skeleton-card"><div class="skeleton-block skeleton-line w-70"></div><div class="skeleton-block skeleton-line w-40"></div></div>`).join('');
+      const res = await fetch('api/appointments/list.php');
+      const data = await res.json();
+      if(!data.success || !data.appointments.length) {
+        box.innerHTML = '<p class="empty-state">Todavia no hay citas registradas.</p>';
+        return;
+      }
+      box.innerHTML = data.appointments.map(app => {
+        const services = (app.services || []).map(s => s.name).join(', ');
+        return `<div class="list-row">
+          <div>
+            <strong>${app.date || ''} · ${app.time || ''} · ${app.client_name || 'Clienta'}</strong>
+            <span>${services || 'Servicio'} · ${app.manicurist_name || 'Staff'} · $${Number(app.price || 0).toLocaleString('es-MX')}</span>
+            <span class="status-chip ${app.status || ''}">${appointmentStatusLabel(app.status)}</span>
+          </div>
+          <div class="appointment-actions">
+            <button class="btn btn-outline" type="button" onclick="updateAppointmentStatus('${app.id}', 'confirmada')">Confirmar</button>
+            <button class="btn btn-outline" type="button" onclick="updateAppointmentStatus('${app.id}', 'en_proceso')">Iniciar</button>
+            <button class="btn btn-primary" type="button" onclick="updateAppointmentStatus('${app.id}', 'completada')">Completar</button>
+            <button class="btn btn-outline" type="button" onclick="registerAppointmentPayment('${app.id}', ${Number(app.price || 0)})">Pago</button>
+            <button class="btn btn-outline" type="button" onclick="updateAppointmentStatus('${app.id}', 'cancelada')">Cancelar</button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    async function updateAppointmentStatus(id, status) {
+      try {
+        const res = await fetch('api/appointments/update_status.php', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ appointment_id: id, status })
+        });
+        const data = await res.json();
+        if(!res.ok || !data.success) throw new Error(data.error || 'No se pudo actualizar la cita.');
+        notify('Cita actualizada: ' + appointmentStatusLabel(status), 'success');
+        loadAppointments();
+        renderCalendar();
+        loadStats();
+      } catch (err) {
+        notify(err.message || 'Error al actualizar cita.', 'error');
+      }
+    }
+
+    async function registerAppointmentPayment(id, suggestedAmount) {
+      const raw = prompt('Monto confirmado', suggestedAmount || '');
+      if(raw === null) return;
+      const amount = Number(raw);
+      if(!amount || amount <= 0) { notify('Monto invalido.', 'error'); return; }
+      try {
+        const res = await fetch('api/finances/add.php', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            type: 'ingreso',
+            amount,
+            method: 'efectivo',
+            appointment_id: id,
+            description: 'Pago confirmado de cita'
+          })
+        });
+        const data = await res.json();
+        if(!res.ok || !data.success) throw new Error(data.error || 'No se pudo registrar pago.');
+        notify('Pago registrado y cita completada.', 'success');
+        loadAppointments();
+        loadFinance();
+        loadStats();
+      } catch (err) {
+        notify(err.message || 'Error al registrar pago.', 'error');
+      }
     }
 
     function adjustClientVisits(clientId, delta) {

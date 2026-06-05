@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../../core/json-db.php';
 require_once __DIR__ . '/../../core/auth.php';
+require_once __DIR__ . '/../../core/loyalty.php';
 
 $user = require_auth(['admin1', 'admin2', 'manicurist']);
 $req = request_json();
@@ -33,33 +34,18 @@ $new_record = [
 $finances[] = $new_record;
 db_write('finances', $finances);
 
-// If it's a payment for an appointment, update appointment status
+// If it's a payment for an appointment, complete it and sync loyalty once.
 if($appointment_id && $type === 'ingreso') {
   $appointments = db_read('appointments', []);
-  $client_id = null;
   foreach($appointments as &$app) {
     if($app['id'] === $appointment_id) {
-      $app['status'] = 'pagada'; // or 'completada'
-      if(!($app['loyalty_processed'] ?? false)) {
-        $app['loyalty_processed'] = true;
-        $client_id = $app['client_id'] ?? null;
-      }
+      $app['status'] = 'completada';
+      $app['completed_by'] = $user['id'];
+      $app['updated_at'] = date('Y-m-d H:i:s');
     }
   }
   db_write('appointments', $appointments);
-  if($client_id) {
-    $clients = db_read('clients', []);
-    foreach($clients as &$client) {
-      if(($client['id'] ?? '') === $client_id) {
-        $client['visits'] = ($client['visits'] ?? 0) + 1;
-        $client['points'] = ($client['points'] ?? 0) + 10;
-        if($client['visits'] === 5) $client['discounts'][] = ['type' => '5_off', 'used' => false];
-        if($client['visits'] === 10) $client['discounts'][] = ['type' => '10_off', 'used' => false];
-        break;
-      }
-    }
-    db_write('clients', $clients);
-  }
+  ziresa_apply_completion_effects($appointment_id, $user['id']);
 }
 
 api_response(['success' => true, 'record' => $new_record]);

@@ -16,6 +16,8 @@ api_response([
     'location' => $brand['location'] ?? '',
     'values' => $brand['values'] ?? []
   ],
-  'media' => $settings['media'] ?? []
+  'media' => $settings['media'] ?? [],
+  'promotions' => $settings['promotions'] ?? [],
+  'trust_points' => $settings['trust_points'] ?? []
 ]);
 ?>
