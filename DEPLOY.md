@@ -1,5 +1,7 @@
 # Despliegue de Ziresa Studio en app.ziresa.mx
 
+Esta version oficial funciona en **modo Nomadas**: HTML, CSS, JavaScript, PHP y JSON local.
+
 ## Raiz esperada
 
 Sube el contenido de esta carpeta como document root de `app.ziresa.mx`:
@@ -7,6 +9,8 @@ Sube el contenido de esta carpeta como document root de `app.ziresa.mx`:
 `Ziresa app/`
 
 La app requiere PHP en el servidor porque los endpoints viven en `api/*.php`.
+
+No despliegues una carpeta `ziresa-pwa`; esa prueba Next/Supabase fue descartada para esta etapa.
 
 ## Configuracion importante
 
