@@ -10,16 +10,41 @@ function ranges_overlap($start_a, $end_a, $start_b, $end_b){
   return $start_a < $end_b && $end_a > $start_b;
 }
 
+function appointment_blocks_slot($status){
+  return in_array($status, [
+    'pendiente_confirmacion_wa',
+    'confirmada',
+    'en_proceso',
+    'completada'
+  ], true);
+}
+
+function appointment_duration_minutes($app){
+  $duration = intval($app['duration'] ?? $app['duration_minutes'] ?? 0);
+  if($duration <= 0 && !empty($app['start_time']) && !empty($app['end_time'])) {
+    $start = strtotime('2000-01-01 ' . $app['start_time']);
+    $end = strtotime('2000-01-01 ' . $app['end_time']);
+    if($start && $end && $end > $start) $duration = intval(($end - $start) / 60);
+  }
+  if($duration <= 0) $duration = 60;
+  return min($duration, 360);
+}
+
 function is_manicurist_available($appointments, $manicurist_id, $date, $time, $duration, $ignore_id = ''){
   $time_start = strtotime("$date $time");
   $time_end = $time_start + (intval($duration) * 60);
   foreach($appointments as $app) {
     if(($app['id'] ?? '') === $ignore_id) continue;
-    if(($app['date'] ?? '') !== $date) continue;
-    if(($app['status'] ?? '') === 'cancelada') continue;
+    if(($app['date'] ?? $app['appointment_date'] ?? '') !== $date) continue;
+    if(!appointment_blocks_slot($app['status'] ?? '')) continue;
     if(($app['manicurist_id'] ?? '') !== $manicurist_id) continue;
-    $app_start = strtotime("$date {$app['time']}");
-    $app_end = $app_start + (intval($app['duration'] ?? 60) * 60);
+    $app_time = $app['time'] ?? $app['start_time'] ?? '';
+    if(!is_valid_time_string($app_time)) continue;
+    $app_start = strtotime("$date $app_time");
+    $app_end = !empty($app['end_time']) && is_valid_time_string($app['end_time'])
+      ? strtotime("$date {$app['end_time']}")
+      : $app_start + (appointment_duration_minutes($app) * 60);
+    if(!$app_start || !$app_end || $app_end <= $app_start) continue;
     if(ranges_overlap($time_start, $time_end, $app_start, $app_end)) return false;
   }
   return true;

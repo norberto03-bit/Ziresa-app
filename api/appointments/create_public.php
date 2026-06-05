@@ -41,6 +41,10 @@ $client_found = false;
 foreach($clients as &$c) {
   if(normalize_phone($c['phone'] ?? '') === $client_phone) {
     $client_id = $c['id'];
+    $stored = $c['pin_hash'] ?? $c['pin'] ?? '';
+    if($stored && !verify_secret($client_pin, $stored)) {
+      api_error('Ese WhatsApp ya tiene cuenta. Usa el PIN correcto para agendar y entrar al Club.', 401);
+    }
     $c['name'] = $client_name;
     if(empty($c['pin_hash']) && empty($c['pin'])) $c['pin_hash'] = hash_secret($client_pin);
     $client_found = true;
@@ -66,10 +70,12 @@ db_write('clients', $clients);
 $appointments = db_read('appointments', []);
 $new_app = [
   'id' => uniqid('app_'),
+  'folio' => strtoupper(substr(uniqid('ZR'), -8)),
   'client_id' => $client_id,
   'manicurist_id' => $manicurist_id,
   'date' => $date,
   'time' => $time,
+  'end_time' => date('H:i', strtotime("$date $time") + ($total_duration * 60)),
   'duration' => $total_duration,
   'services' => $selected_services,
   'price' => $total_price,
@@ -79,6 +85,12 @@ $new_app = [
 
 $appointments[] = $new_app;
 db_write('appointments', $appointments);
+login_user('client', $client_id);
 
-api_response(['success' => true, 'appointment' => $new_app]);
+api_response([
+  'success' => true,
+  'appointment' => $new_app,
+  'client_id' => $client_id,
+  'redirect' => 'clientes.html'
+]);
 ?>

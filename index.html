@@ -224,6 +224,11 @@
         </div>
         <button type="submit" class="btn btn-primary" style="width: 100%; margin-top:10px;" id="login-button">Ingresar al Club</button>
       </form>
+      <div style="display:grid; gap:10px; margin-top:22px;">
+        <button type="button" class="btn btn-outline" onclick="prefillLogin('admin')">Entrar como Admin</button>
+        <button type="button" class="btn btn-outline" onclick="prefillLogin('8111111111')">Entrar como Staff</button>
+        <p style="font-size:.9rem; color:#6a5c6d; text-align:center;">Admin usa usuario <strong>admin</strong>. Staff usa su telefono registrado. Cada perfil requiere su PIN.</p>
+      </div>
     </div>
   </section>
 
@@ -272,7 +277,7 @@
         </div>
         <div style="display:flex; gap:12px; margin-top:34px;">
           <button class="btn btn-outline" style="flex:1;" onclick="backToStep2()">Volver</button>
-          <button class="btn btn-primary" style="flex:2; background: linear-gradient(45deg, #1b7f5a, #25D366);" onclick="confirmBooking()" id="confirm-booking">Confirmar por WhatsApp</button>
+          <button class="btn btn-primary" style="flex:2; background: linear-gradient(45deg, #1b7f5a, #25D366);" onclick="confirmBooking()" id="confirm-booking">Crear cita y entrar al Club</button>
         </div>
       </div>
     </div>
@@ -373,6 +378,16 @@
         button.textContent = 'Ingresar al Club';
       }
     });
+
+    function prefillLogin(phone) {
+      document.getElementById('phone').value = phone;
+      document.getElementById('pin').focus();
+      const errorMsg = document.getElementById('error-msg');
+      errorMsg.textContent = phone === 'admin'
+        ? 'Admin: escribe tu PIN y entra al panel operativo.'
+        : 'Staff: escribe tu PIN para abrir tu agenda.';
+      errorMsg.style.display = 'block';
+    }
 
     let brandSettings = { business_whatsapp: '' };
     let allServices = [];
@@ -612,17 +627,19 @@
         if(!res.ok || !data.success) throw new Error(data.error || 'No se pudo crear la cita');
         const waPhone = brandSettings.business_whatsapp || "";
         const text = encodeURIComponent(`Hola Ziresa! Acabo de agendar una cita por la App.\nSoy ${name}.\nFecha: ${selectedDateStr} a las ${selectedSlot.time}.\nQuiero confirmar mi asistencia.`);
+        const folio = data.appointment && data.appointment.folio ? data.appointment.folio : data.appointment.id;
         if(waPhone) {
           window.open(`https://wa.me/${waPhone}?text=${text}`, '_blank');
-          closeBookingModal();
+          bookingMessage(`Cita creada con folio ${folio}. Te llevaremos a tu Club Ziresa.`);
         } else {
-          bookingMessage('Cita creada. Configura el WhatsApp real en data/settings.json para abrir confirmacion automatica.');
+          bookingMessage(`Cita creada con folio ${folio}. WhatsApp del estudio aun no esta configurado, pero tu cita quedo pendiente y ya puedes ver tu Club.`);
         }
+        setTimeout(() => { window.location.href = data.redirect || 'clientes.html'; }, 1200);
       } catch (e) {
         bookingMessage(e.message || 'Error de conexion.');
       } finally {
         button.disabled = false;
-        button.textContent = 'Confirmar por WhatsApp';
+        button.textContent = 'Crear cita y entrar al Club';
       }
     }
     loadPublicSettings();
