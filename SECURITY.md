@@ -22,6 +22,19 @@ No borres los JSON del servidor si son la base activa de operacion; solo quitalo
 `api/auth/session.php` emite `csrf_token`.
 Las paginas usan `assets/security.js` y `apiFetch()` para enviar `X-CSRF-Token` en acciones `POST`.
 
+## Acceso demo de clienta
+
+`api/dev/login_client.php` permite entrar al hub cliente sin PIN solo para pruebas.
+Funciona automaticamente en `localhost` o `127.0.0.1`.
+
+En produccion solo funciona si `data/settings.json` tiene:
+
+```json
+"dev_client_access_enabled": true
+```
+
+Activalo solo por ratos cortos y vuelve a `false` al terminar las pruebas.
+
 Endpoints protegidos:
 
 - `api/auth/login.php`
