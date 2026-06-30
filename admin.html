@@ -214,7 +214,15 @@
       const res = await fetch('api/auth/session.php');
       const data = await res.json();
       setCsrfToken(data.csrf_token);
-      if(!data.authenticated || !['admin1','admin2'].includes(data.type)) window.location.href = 'index.html#login';
+      if(!data.authenticated || !['admin1','admin2'].includes(data.type)) {
+        const settingsRes = await fetch('api/settings/public.php');
+        const settings = await settingsRes.json();
+        if(settings.dev_access_enabled) {
+          window.location.href = 'api/dev/login_admin.php';
+          return;
+        }
+        window.location.href = 'index.html#login';
+      }
     }
 
     async function logout() {

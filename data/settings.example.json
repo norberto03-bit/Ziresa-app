@@ -2,6 +2,7 @@
   "business_name": "Ziresa Studio",
   "public_app_url": "https://app.ziresa.mx",
   "business_whatsapp": "52XXXXXXXXXX",
+  "dev_access_enabled": false,
   "dev_client_access_enabled": false,
   "brand": {
     "name": "Ziresa Studio",

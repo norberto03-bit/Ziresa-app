@@ -27,12 +27,18 @@ Las paginas usan `assets/security.js` y `apiFetch()` para enviar `X-CSRF-Token` 
 `api/dev/login_client.php` permite entrar al hub cliente sin PIN solo para pruebas.
 Funciona automaticamente en `localhost` o `127.0.0.1`.
 
-En produccion solo funciona si `data/settings.json` tiene:
+Tambien existen accesos de prueba para admin y staff:
+
+- `api/dev/login_admin.php`
+- `api/dev/login_staff.php`
+
+En produccion solo funcionan si `data/settings.json` tiene:
 
 ```json
-"dev_client_access_enabled": true
+"dev_access_enabled": true
 ```
 
+Mientras esa bandera este activa, abrir `admin.html` o `manicurista.html` sin sesion intentara crear la sesion dev automaticamente.
 Activalo solo por ratos cortos y vuelve a `false` al terminar las pruebas.
 
 Endpoints protegidos:

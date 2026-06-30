@@ -76,7 +76,15 @@
       const res = await fetch('api/auth/session.php');
       const data = await res.json();
       setCsrfToken(data.csrf_token);
-      if(!data.authenticated || data.type !== 'manicurist') window.location.href = 'index.html#login';
+      if(!data.authenticated || data.type !== 'manicurist') {
+        const settingsRes = await fetch('api/settings/public.php');
+        const settings = await settingsRes.json();
+        if(settings.dev_access_enabled) {
+          window.location.href = 'api/dev/login_staff.php';
+          return;
+        }
+        window.location.href = 'index.html#login';
+      }
     }
 
     async function logout() {
