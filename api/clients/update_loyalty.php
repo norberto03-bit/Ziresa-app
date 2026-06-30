@@ -5,6 +5,7 @@ require_once __DIR__ . '/../../core/loyalty.php';
 
 require_auth(['admin1', 'admin2']);
 $req = request_json();
+require_csrf($req);
 
 $client_id = $req['client_id'] ?? '';
 $visits = intval($req['visits'] ?? 0);

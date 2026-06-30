@@ -1,0 +1,11 @@
+[
+  {
+    "id": "svc_demo",
+    "name": "Servicio Demo",
+    "category": "nails",
+    "duration_minutes": 60,
+    "price": 500,
+    "points_reward": 5,
+    "active": true
+  }
+]

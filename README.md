@@ -29,6 +29,15 @@ Consulta `DEPLOY.md` para los pasos de cPanel/FTP.
 
 Consulta `ARCHITECTURE.md`.
 
+## Seguridad
+
+Consulta `SECURITY.md`.
+
+- `data/*.json` son datos productivos/locales y no deben versionarse.
+- Usa `data/*.example.json` como plantilla de despliegue.
+- Las acciones `POST` usan CSRF por `assets/security.js`.
+- La creacion de citas valida disponibilidad y escritura bajo lock.
+
 ## Flujo operativo actual
 
 - Publico agenda desde `index.html`.

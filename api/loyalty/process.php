@@ -5,6 +5,7 @@ require_once __DIR__ . '/../../core/auth.php';
 // Endpoint called when an appointment is paid/completed
 $user = require_auth(['admin1', 'admin2']);
 $req = request_json();
+require_csrf($req);
 $appointment_id = $req['appointment_id'] ?? '';
 
 if(!$appointment_id) api_error('Falta ID de cita', 400);

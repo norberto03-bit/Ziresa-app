@@ -1,0 +1,9 @@
+[
+  {
+    "id": "admin_1",
+    "phone": "CAMBIAR_USUARIO_ADMIN",
+    "pin_hash": "GENERAR_CON_PASSWORD_HASH_O_LOGIN_INICIAL",
+    "role": "admin1",
+    "name": "Admin General"
+  }
+]

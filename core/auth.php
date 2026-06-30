@@ -31,6 +31,7 @@ function login_user($type, $id) {
   session_regenerate_id(true);
   $_SESSION['ziresa_user_type'] = $type; // 'admin1', 'admin2', 'manicurist', 'client'
   $_SESSION['ziresa_user_id'] = $id;
+  csrf_token();
   return true;
 }
 
@@ -69,9 +70,35 @@ function require_auth($allowed_types = []) {
   return $user;
 }
 
+function csrf_token() {
+  start_session_if_needed();
+  if(empty($_SESSION['ziresa_csrf_token'])) {
+    $_SESSION['ziresa_csrf_token'] = bin2hex(random_bytes(32));
+  }
+  return $_SESSION['ziresa_csrf_token'];
+}
+
+function request_csrf_token($req = null) {
+  $headers = function_exists('getallheaders') ? getallheaders() : [];
+  foreach($headers as $name => $value) {
+    if(strtolower($name) === 'x-csrf-token') return (string)$value;
+  }
+  if(is_array($req) && isset($req['_csrf'])) return (string)$req['_csrf'];
+  return '';
+}
+
+function require_csrf($req = null) {
+  $expected = csrf_token();
+  $provided = request_csrf_token($req);
+  if(!$provided || !hash_equals($expected, $provided)) {
+    api_error('Token CSRF invalido o ausente.', 403);
+  }
+}
+
 function current_session_payload() {
+  $token = csrf_token();
   $user = get_logged_user();
-  if(!$user) return ['authenticated' => false];
-  return ['authenticated' => true, 'type' => $user['type'], 'id' => $user['id']];
+  if(!$user) return ['authenticated' => false, 'csrf_token' => $token];
+  return ['authenticated' => true, 'type' => $user['type'], 'id' => $user['id'], 'csrf_token' => $token];
 }
 ?>

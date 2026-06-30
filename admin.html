@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -204,6 +204,7 @@
     </div>
   </div>
 
+  <script src="assets/security.js"></script>
   <script>
     let currentDate = new Date();
     let selectedDateStr = "";
@@ -212,11 +213,12 @@
     async function requireAdminSession() {
       const res = await fetch('api/auth/session.php');
       const data = await res.json();
+      setCsrfToken(data.csrf_token);
       if(!data.authenticated || !['admin1','admin2'].includes(data.type)) window.location.href = 'index.html#login';
     }
 
     async function logout() {
-      await fetch('api/auth/logout.php', { method: 'POST' });
+      await apiFetch('api/auth/logout.php', { method: 'POST' });
       window.location.href = 'index.html';
     }
 
@@ -317,7 +319,7 @@
       const hoursStr = document.getElementById('custom-hours').value;
       const hours = hoursStr.split(',').map(s => s.trim()).filter(Boolean);
       try {
-        const res = await fetch('api/calendar/save_day.php', {
+        const res = await apiFetch('api/calendar/save_day.php', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({ date: selectedDateStr, hours })
@@ -356,9 +358,9 @@
         return `
         <div class="list-row client-wallet-admin" data-client-id="${c.id}">
           <div>
-            <strong>${c.name || 'Clienta'}</strong>
-            <span>${c.phone || ''} · ${points} pts · ${discount}% descuento</span>
-            <span>${c.loyalty_note || 'Sin nota de lealtad.'}</span>
+            <strong>${escapeHTML(c.name || 'Clienta')}</strong>
+            <span>${c.phone || ''} Â· ${points} pts Â· ${discount}% descuento</span>
+            <span>${escapeHTML(c.loyalty_note || 'Sin nota de lealtad.')}</span>
           </div>
           <div class="client-visit-control">
             <div class="visit-stepper">
@@ -397,9 +399,9 @@
         const services = (app.services || []).map(s => s.name).join(', ');
         return `<div class="list-row">
           <div>
-            <strong>${app.date || ''} · ${app.time || ''} · ${app.client_name || 'Clienta'}</strong>
-            <span>${services || 'Servicio'} · ${app.manicurist_name || 'Staff'} · $${Number(app.price || 0).toLocaleString('es-MX')}</span>
-            <span class="status-chip ${app.status || ''}">${appointmentStatusLabel(app.status)}</span>
+            <strong>${escapeHTML(app.date || '')} Â· ${escapeHTML(app.time || '')} Â· ${escapeHTML(app.client_name || 'Clienta')}</strong>
+            <span>${escapeHTML(services || 'Servicio')} Â· ${escapeHTML(app.manicurist_name || 'Staff')} Â· $${Number(app.price || 0).toLocaleString('es-MX')}</span>
+            <span class="status-chip ${escapeHTML(app.status || '')}">${escapeHTML(appointmentStatusLabel(app.status))}</span>
           </div>
           <div class="appointment-actions">
             <button class="btn btn-outline" type="button" onclick="updateAppointmentStatus('${app.id}', 'confirmada')">Confirmar</button>
@@ -414,7 +416,7 @@
 
     async function updateAppointmentStatus(id, status) {
       try {
-        const res = await fetch('api/appointments/update_status.php', {
+        const res = await apiFetch('api/appointments/update_status.php', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({ appointment_id: id, status })
@@ -436,7 +438,7 @@
       const amount = Number(raw);
       if(!amount || amount <= 0) { notify('Monto invalido.', 'error'); return; }
       try {
-        const res = await fetch('api/finances/add.php', {
+        const res = await apiFetch('api/finances/add.php', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({
@@ -467,7 +469,7 @@
     async function saveClientLoyalty(clientId) {
       const visits = Number(document.getElementById('visits-' + clientId).textContent || 0);
       try {
-        const res = await fetch('api/clients/update_loyalty.php', {
+        const res = await apiFetch('api/clients/update_loyalty.php', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({
@@ -512,9 +514,9 @@
         const wa = item.phone ? `https://wa.me/52${item.phone.replace(/^52/, '')}?text=${encodeURIComponent(item.message)}` : '#';
         return `<div class="list-row">
           <div>
-            <strong>${item.name}</strong>
-            <span>${item.status.replaceAll('_', ' ')} · ultima visita ${item.last_date || 'sin fecha'} · ${item.last_service || 'servicio'}</span>
-            <span>${item.message}</span>
+            <strong>${escapeHTML(item.name)}</strong>
+            <span>${item.status.replaceAll('_', ' ')} Â· ultima visita ${item.last_date || 'sin fecha'} Â· ${item.last_service || 'servicio'}</span>
+            <span>${escapeHTML(item.message)}</span>
           </div>
           <a class="btn btn-outline" href="${wa}" target="_blank" rel="noopener">WhatsApp</a>
         </div>`;
@@ -545,8 +547,8 @@
           const klass = item.type === 'egreso' ? 'money-negative' : 'money-positive';
           return `<div class="list-row">
             <div>
-              <strong>${item.description || item.type}</strong>
-              <span>${item.date || ''} · ${item.method || 'metodo'} · ${item.type}</span>
+              <strong>${escapeHTML(item.description || item.type)}</strong>
+              <span>${item.date || ''} Â· ${item.method || 'metodo'} Â· ${item.type}</span>
             </div>
             <div class="${klass}">${sign}$${Number(item.amount || 0).toLocaleString('es-MX')}</div>
           </div>`;
@@ -566,7 +568,7 @@
       };
       if(payload.amount <= 0) { notify('Captura un monto valido.', 'error'); return; }
       try {
-        const res = await fetch('api/finances/add.php', {
+        const res = await apiFetch('api/finances/add.php', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify(payload)
@@ -584,10 +586,10 @@
 
     /* ANTIGRAVITY UPGRADE: Typed toast with slide-up/fade-out animation */
     function notify(message, type = 'info') {
-      const icons = { success: '✓', error: '✕', info: 'ℹ' };
+      const icons = { success: 'âœ“', error: 'âœ•', info: 'â„¹' };
       const toast = document.createElement('div');
       toast.className = `toast toast-${type}`;
-      toast.innerHTML = `<span style="font-size:1rem">${icons[type] || '●'}</span><span>${message}</span>`;
+      toast.innerHTML = `<span style="font-size:1rem">${escapeHTML(icons[type] || '●')}</span><span>${escapeHTML(message)}</span>`;
       document.body.appendChild(toast);
       requestAnimationFrame(() => requestAnimationFrame(() => toast.classList.add('toast-show')));
       setTimeout(() => {

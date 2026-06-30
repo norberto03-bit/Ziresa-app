@@ -86,6 +86,17 @@ function is_bookable_slot($date, $time, $manicurist_id, $duration){
   return is_manicurist_available($appointments, $manicurist_id, $date, $time, $duration);
 }
 
+function is_bookable_slot_locked($date, $time, $manicurist_id, $duration){
+  $settings = db_read('settings');
+  $hours = get_schedule_for_date($settings, $date);
+  if(!in_array($time, $hours)) return false;
+  $manicurists = db_read('manicurists', []);
+  $man = find_by_id($manicurists, $manicurist_id);
+  if(!$man || !($man['active'] ?? true)) return false;
+  $appointments = db_read('appointments', []);
+  return is_manicurist_available($appointments, $manicurist_id, $date, $time, $duration);
+}
+
 function build_selected_services($service_ids){
   $services = db_read('services', []);
   $total_duration = 0;

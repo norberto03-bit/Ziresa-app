@@ -1,0 +1,25 @@
+{
+  "business_name": "Ziresa Studio",
+  "public_app_url": "https://app.ziresa.mx",
+  "business_whatsapp": "52XXXXXXXXXX",
+  "brand": {
+    "name": "Ziresa Studio",
+    "promise": "Belleza expresiva, segura e inclusiva.",
+    "location": "Configurar direccion real",
+    "instagram": "",
+    "facebook": "",
+    "tiktok": "",
+    "values": []
+  },
+  "default_schedule": {
+    "1": ["10:00", "11:00", "12:00", "15:00", "16:00", "17:00"],
+    "2": ["10:00", "11:00", "12:00", "15:00", "16:00", "17:00"],
+    "3": ["10:00", "11:00", "12:00", "15:00", "16:00", "17:00"],
+    "4": ["10:00", "11:00", "12:00", "15:00", "16:00", "17:00"],
+    "5": ["10:00", "11:00", "12:00", "15:00", "16:00", "17:00"],
+    "6": ["10:00", "11:00", "12:00"],
+    "0": []
+  },
+  "promotions": [],
+  "trust_points": []
+}

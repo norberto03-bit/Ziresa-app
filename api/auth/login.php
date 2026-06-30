@@ -3,6 +3,7 @@ require_once __DIR__ . '/../../core/json-db.php';
 require_once __DIR__ . '/../../core/auth.php';
 
 $req = request_json();
+require_csrf($req);
 $phone = trim($req['phone'] ?? '');
 $pin = trim($req['pin'] ?? '');
 

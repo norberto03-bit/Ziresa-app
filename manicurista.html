@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -70,15 +70,17 @@
       </div>
     </main>
   </div>
+  <script src="assets/security.js"></script>
   <script>
     async function requireStaffSession() {
       const res = await fetch('api/auth/session.php');
       const data = await res.json();
+      setCsrfToken(data.csrf_token);
       if(!data.authenticated || data.type !== 'manicurist') window.location.href = 'index.html#login';
     }
 
     async function logout() {
-      await fetch('api/auth/logout.php', { method: 'POST' });
+      await apiFetch('api/auth/logout.php', { method: 'POST' });
       window.location.href = 'index.html';
     }
 
@@ -124,21 +126,21 @@
         list.innerHTML = `<div style="text-align:center;padding:40px 20px;">
           <div style="font-size:3rem;margin-bottom:12px;">&#9728;</div>
           <p style="font-weight:800;color:var(--primary);font-size:1.1rem;">Dia libre hoy</p>
-          <p style="color:#666;margin-top:6px;">No hay citas agendadas. ¡Disfruta tu dia!</p>
+          <p style="color:#666;margin-top:6px;">No hay citas agendadas. Â¡Disfruta tu dia!</p>
         </div>`;
         return;
       }
       list.innerHTML = data.appointments.map(app => {
         const services = (app.services || []).map(s => s.name).join(', ');
         return `<div class="agenda-item">
-          <div class="agenda-time">${app.time}</div>
+          <div class="agenda-time">${escapeHTML(app.time)}</div>
           <div>
-            <strong>${app.client_name}</strong>
-            <span>${services}</span>
-            <span>${app.client_phone ? 'WhatsApp: ' + app.client_phone : ''}</span>
+            <strong>${escapeHTML(app.client_name)}</strong>
+            <span>${escapeHTML(services)}</span>
+            <span>${escapeHTML(app.client_phone ? 'WhatsApp: ' + app.client_phone : '')}</span>
           </div>
           <div>
-            <div class="status-pill">${app.status || 'pendiente'}</div>
+            <div class="status-pill">${escapeHTML(app.status || 'pendiente')}</div>
             <div class="staff-actions" style="margin-top:10px;">
               <button class="btn btn-outline" type="button" onclick="updateStaffStatus('${app.id}', 'confirmada')">Confirmar</button>
               <button class="btn btn-outline" type="button" onclick="updateStaffStatus('${app.id}', 'en_proceso')">Iniciar</button>
@@ -151,7 +153,7 @@
 
     async function updateStaffStatus(id, status) {
       try {
-        const res = await fetch('api/appointments/update_status.php', {
+        const res = await apiFetch('api/appointments/update_status.php', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({ appointment_id: id, status })
@@ -169,7 +171,7 @@
       e.preventDefault();
       const amount = Number(document.getElementById('tip-amount').value);
       const method = document.getElementById('tip-method').value;
-      const res = await fetch('api/finances/add.php', {
+      const res = await apiFetch('api/finances/add.php', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({ type: 'propina', amount, method, description: 'Propina registrada por manicurista' })
@@ -184,10 +186,10 @@
 
     /* ANTIGRAVITY UPGRADE: Typed toast with slide-up/fade-out animation */
     function notify(message, type = 'info') {
-      const icons = { success: '✓', error: '✕', info: 'ℹ' };
+      const icons = { success: 'âœ“', error: 'âœ•', info: 'â„¹' };
       const toast = document.createElement('div');
       toast.className = `toast toast-${type}`;
-      toast.innerHTML = `<span style="font-size:1rem">${icons[type] || '●'}</span><span>${message}</span>`;
+      toast.innerHTML = `<span style="font-size:1rem">${escapeHTML(icons[type] || '●')}</span><span>${escapeHTML(message)}</span>`;
       document.body.appendChild(toast);
       requestAnimationFrame(() => requestAnimationFrame(() => toast.classList.add('toast-show')));
       setTimeout(() => {

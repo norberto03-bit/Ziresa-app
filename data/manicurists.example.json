@@ -1,0 +1,9 @@
+[
+  {
+    "id": "man_1",
+    "name": "Staff Demo",
+    "phone": "CAMBIAR_TELEFONO",
+    "pin_hash": "GENERAR_CON_PASSWORD_HASH_O_LOGIN_INICIAL",
+    "active": true
+  }
+]

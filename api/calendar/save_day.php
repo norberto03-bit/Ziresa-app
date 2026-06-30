@@ -4,6 +4,7 @@ require_once __DIR__ . '/../../core/auth.php';
 
 $user = require_auth(['admin1']);
 $req = request_json();
+require_csrf($req);
 
 $date = $req['date'] ?? ''; // e.g., '2026-05-20'
 $hours = $req['hours'] ?? []; // array of strings like ["10:00", "11:00", "12:00"]

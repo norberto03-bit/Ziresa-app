@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ziresa-shell-v2';
+const CACHE_NAME = 'ziresa-shell-v3';
 const SHELL_ASSETS = [
   './',
   './index.html',
@@ -6,6 +6,7 @@ const SHELL_ASSETS = [
   './admin.html',
   './manicurista.html',
   './assets/index.css',
+  './assets/security.js',
   './assets/icon.svg',
   './manifest.webmanifest'
 ];

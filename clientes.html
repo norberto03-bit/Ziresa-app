@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -173,6 +173,7 @@
     </main>
   </div>
 
+  <script src="assets/security.js"></script>
   <script>
     function showTab(tab, link) {
       /* ANTIGRAVITY UPGRADE: Tab fade-in animation */
@@ -192,7 +193,7 @@
     }
 
     async function logout() {
-      await fetch('api/auth/logout.php', { method: 'POST' });
+      await apiFetch('api/auth/logout.php', { method: 'POST' });
       window.location.href = 'index.html';
     }
 
@@ -216,7 +217,7 @@
         const wallet = data.wallet || {};
         const percentage = visits <= 5 ? (visits / 5) * 80 : Math.min(100, 80 + (((visits - 5) / 5) * 20));
 
-        /* ANTIGRAVITY UPGRADE: Loyalty bar — animate after a short delay for visual impact */
+        /* ANTIGRAVITY UPGRADE: Loyalty bar â€” animate after a short delay for visual impact */
         const bar = document.getElementById('loyalty-bar');
         bar.style.width = '0%';
         setTimeout(() => { bar.style.width = percentage + '%'; }, 350);
@@ -235,13 +236,13 @@
           document.getElementById('next-app-date').textContent = `${data.next_appointment.date} a las ${data.next_appointment.time}`;
           document.getElementById('next-app-services').textContent = data.next_appointment.services.map(s => s.name).join(', ');
         } else {
-          document.getElementById('next-app-date').textContent = 'Sin citas próximas ✨';
-          document.getElementById('next-app-services').textContent = 'Agenda cuando quieras — te esperamos.';
+          document.getElementById('next-app-date').textContent = 'Sin citas prÃ³ximas âœ¨';
+          document.getElementById('next-app-services').textContent = 'Agenda cuando quieras â€” te esperamos.';
         }
 
         const favList = document.getElementById('fav-services');
         if(data.favorite_services && data.favorite_services.length) {
-          favList.innerHTML = data.favorite_services.map(s => `<li>${s}</li>`).join('');
+          favList.innerHTML = data.favorite_services.map(s => `<li>${escapeHTML(s)}</li>`).join('');
         } else {
           favList.innerHTML = '<li>Aun no hay servicios favoritos.</li>';
         }
@@ -262,11 +263,11 @@
         const gallery = data.gallery || [];
         const feed = document.getElementById('feed-container');
         if(gallery.length) {
-          feed.innerHTML = gallery.map(src => `<div class="feed-item"><img src="${src}" alt="Diseno de unas"></div>`).join('');
+          feed.innerHTML = gallery.map(src => `<div class="feed-item"><img src="${escapeHTML(src)}" alt="Diseno de unas"></div>`).join('');
         } else {
           feed.innerHTML = `<div class="feed-item" style="grid-column:1/-1; aspect-ratio:auto; min-height:120px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px;">
             <span style="font-size:2.5rem;">&#127928;</span>
-            <span style="color:var(--primary); font-weight:800;">Tu primera foto aparecerá después de tu visita</span>
+            <span style="color:var(--primary); font-weight:800;">Tu primera foto aparecerÃ¡ despuÃ©s de tu visita</span>
           </div>`;
         }
       } catch (e) {
@@ -289,7 +290,7 @@
       const stamps = wallet.stamps || [];
       document.getElementById('wallet-stamps').innerHTML = stamps.map(stamp => `
         <div class="wallet-stamp ${stamp.reached ? 'reached' : ''}">
-          <span>${stamp.emoji || '♡'}</span><b>${stamp.number}</b>
+          <span>${escapeHTML(stamp.emoji || '♡')}</span><b>${Number(stamp.number || 0)}</b>
         </div>
       `).join('');
     }

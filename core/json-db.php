@@ -44,28 +44,53 @@ function db_read($name, $default = []){
   return $data;
 }
 
-function db_write($name, $data){
+function db_lock_names($names){
+  $safe = [];
+  foreach($names as $name) {
+    $clean = preg_replace('/[^a-zA-Z0-9_\-]/', '', (string)$name);
+    if($clean !== '') $safe[] = $clean;
+  }
+  $safe = array_values(array_unique($safe));
+  sort($safe);
+  return $safe;
+}
+
+function db_with_locks($names, $callback){
+  $locks = [];
+  foreach(db_lock_names($names) as $name) {
+    $path = db_path($name);
+    $dir = dirname($path);
+    if(!is_dir($dir)) mkdir($dir, 0775, true);
+    $lock = fopen($path . '.lock', 'c');
+    if(!$lock) {
+      if(function_exists('api_error')) api_error('No se pudo abrir el lock de base de datos JSON', 500);
+      return false;
+    }
+    if(!flock($lock, LOCK_EX)) {
+      fclose($lock);
+      if(function_exists('api_error')) api_error('No se pudo bloquear la base de datos JSON', 500);
+      return false;
+    }
+    $locks[] = $lock;
+  }
+
+  try {
+    return call_user_func($callback);
+  } finally {
+    for($i = count($locks) - 1; $i >= 0; $i--) {
+      flock($locks[$i], LOCK_UN);
+      fclose($locks[$i]);
+    }
+  }
+}
+
+function db_write_unlocked($name, $data){
   $path = db_path($name);
   $dir = dirname($path);
   if(!is_dir($dir)) mkdir($dir, 0775, true);
 
-  $lock_path = $path . '.lock';
-  $lock = fopen($lock_path, 'c');
-  if(!$lock) {
-    if(function_exists('api_error')) api_error('No se pudo abrir el lock de base de datos JSON', 500);
-    return false;
-  }
-
-  if(!flock($lock, LOCK_EX)) {
-    fclose($lock);
-    if(function_exists('api_error')) api_error('No se pudo bloquear la base de datos JSON', 500);
-    return false;
-  }
-
   $encoded = json_encode($data, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT);
   if($encoded === false) {
-    flock($lock, LOCK_UN);
-    fclose($lock);
     if(function_exists('api_error')) api_error('No se pudo serializar la base de datos JSON', 500);
     return false;
   }
@@ -80,22 +105,22 @@ function db_write($name, $data){
 
   $tmp = $path . '.' . uniqid('tmp_', true);
   if(file_put_contents($tmp, $encoded, LOCK_EX) === false) {
-    flock($lock, LOCK_UN);
-    fclose($lock);
     if(function_exists('api_error')) api_error('No se pudo escribir la base de datos JSON', 500);
     return false;
   }
   if(!rename($tmp, $path)) {
     @unlink($tmp);
-    flock($lock, LOCK_UN);
-    fclose($lock);
     if(function_exists('api_error')) api_error('No se pudo guardar la base de datos JSON', 500);
     return false;
   }
   @chmod($path, 0664);
-  flock($lock, LOCK_UN);
-  fclose($lock);
   return true;
+}
+
+function db_write($name, $data){
+  return db_with_locks([$name], function() use ($name, $data) {
+    return db_write_unlocked($name, $data);
+  });
 }
 
 function normalize_phone($phone){
