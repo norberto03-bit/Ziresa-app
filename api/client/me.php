@@ -55,6 +55,7 @@ arsort($services_used);
 $favorite_services = array_keys($services_used);
 
 $gallery = $my_client['gallery'] ?? [];
+$recent_visits = array_slice(array_reverse($past_visits), 0, 5);
 
 api_response([
   'success' => true,
@@ -63,6 +64,17 @@ api_response([
   'next_appointment' => $next_appointment,
   'favorite_services' => $favorite_services,
   'gallery' => $gallery,
-  'visits_count' => count($past_visits)
+  'visits_count' => count($past_visits),
+  'recent_visits' => array_map(function($app) {
+    return [
+      'id' => $app['id'] ?? '',
+      'date' => $app['date'] ?? '',
+      'time' => $app['time'] ?? '',
+      'services' => array_map(function($service) {
+        return $service['name'] ?? 'Servicio';
+      }, $app['services'] ?? []),
+      'price' => floatval($app['price'] ?? 0)
+    ];
+  }, $recent_visits)
 ]);
 ?>

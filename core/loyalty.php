@@ -11,12 +11,23 @@ function ziresa_loyalty_wallet($client){
 
   $next_goal = $visits >= 10 ? 10 : ($visits >= 5 ? 10 : 5);
   $progress_to_goal = $next_goal > 0 ? min(100, round(($visits / $next_goal) * 100)) : 100;
+  $level = 'Nueva';
+  if($visits >= 10) {
+    $level = 'VIP';
+  } elseif($visits >= 5) {
+    $level = 'Frecuente';
+  } elseif($visits >= 1) {
+    $level = 'En progreso';
+  }
+
   $stamps = [];
   for($i = 1; $i <= 10; $i++) {
     $stamps[] = [
       'number' => $i,
       'reached' => $i <= $visits,
-      'emoji' => $i <= $visits ? ($i === 5 || $i === 10 ? '💎' : '💅') : '♡'
+      'emoji' => $i <= $visits ? ($i === 5 || $i === 10 ? '★' : '✓') : '♡',
+      'label' => $i === 5 ? '5% OFF' : ($i === 10 ? '10% OFF' : 'Visita ' . $i),
+      'reward' => $i === 5 || $i === 10
     ];
   }
 
@@ -27,11 +38,16 @@ function ziresa_loyalty_wallet($client){
     'visits' => $visits,
     'points' => $points,
     'discount_percent' => $discount,
+    'level' => $level,
     'score' => min(100, ($visits * 8) + min(20, floor($points / 25))),
     'next_goal' => $next_goal,
     'visits_to_next_goal' => max(0, $next_goal - $visits),
     'progress_percent' => $progress_to_goal,
     'stamps' => $stamps,
+    'rewards' => [
+      ['visits_required' => 5, 'discount_percent' => 5, 'unlocked' => $visits >= 5],
+      ['visits_required' => 10, 'discount_percent' => 10, 'unlocked' => $visits >= 10]
+    ],
     'benefit_label' => $discount > 0 ? $discount . '% descuento activo' : 'Sigue acumulando visitas',
     'updated_at' => date('Y-m-d H:i:s')
   ];
@@ -84,6 +100,7 @@ function ziresa_apply_completion_effects($appointment_id, $actor_id = ''){
         break;
       }
     }
+    unset($client);
     $appointments[$appointment_index]['loyalty_processed'] = true;
   }
 

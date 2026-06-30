@@ -10,6 +10,26 @@
     .feed-item { background: rgba(255,255,255,0.65); border-radius: 12px; overflow: hidden; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; text-align: center; padding: 12px; color: var(--primary); border: 1px solid rgba(255,255,255,0.9); font-weight: 800; }
     .feed-item img { width: 100%; height: 100%; object-fit: cover; }
     .prefs-card { background: rgba(255,255,255,0.68); padding: 18px; border-radius: 16px; margin-top: 20px; border: 1px solid rgba(255,255,255,0.9); }
+    .loyalty-stage { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(280px, .95fr); gap: 18px; align-items: start; margin-top: 20px; }
+    .wallet-card.interactive-wallet { isolation: isolate; transform-style: preserve-3d; transition: transform .25s ease, box-shadow .25s ease; }
+    .wallet-card.interactive-wallet:hover { transform: translateY(-4px); box-shadow: 0 30px 70px rgba(92, 26, 112, 0.32); }
+    .wallet-level-row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; }
+    .wallet-level-pill { display:inline-flex; align-items:center; min-height:34px; padding:7px 12px; border-radius:999px; background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.32); color:white; font-weight:900; }
+    .wallet-stamp { cursor:pointer; transition: transform .22s ease, background .22s ease; border-width:1px; font-family:var(--font-main); }
+    .wallet-stamp:hover { transform: translateY(-3px) scale(1.03); }
+    .wallet-stamp.reward { border-style: solid; }
+    .wallet-stamp.active { outline: 3px solid rgba(255,255,255,.55); outline-offset: 2px; }
+    .wallet-stamp-detail { min-height: 58px; padding: 12px 14px; border-radius: 16px; background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.28); color: white; font-weight: 800; }
+    .loyalty-side { display:grid; gap:14px; }
+    .reward-card, .visit-card { padding:18px; border-radius:16px; background:rgba(255,255,255,.68); border:1px solid rgba(255,255,255,.9); box-shadow:0 8px 24px rgba(92,26,112,.08); }
+    .reward-card h4, .visit-card h4 { color:var(--primary); margin-bottom:8px; }
+    .reward-list, .visit-list { display:grid; gap:10px; margin-top:12px; }
+    .reward-row, .visit-row { display:flex; justify-content:space-between; gap:12px; align-items:center; padding:12px; border-radius:12px; background:rgba(255,255,255,.65); }
+    .reward-row.unlocked { background:linear-gradient(135deg, rgba(92,26,112,.12), rgba(255,64,129,.16)); border:1px solid rgba(255,64,129,.2); }
+    .reward-badge { white-space:nowrap; border-radius:999px; padding:6px 10px; font-size:.78rem; font-weight:900; color:white; background:var(--primary); }
+    .reward-row.unlocked .reward-badge { background:var(--success); }
+    .wallet-hint { color:rgba(255,255,255,.76); font-size:.9rem; }
+    @media (max-width: 920px) { .loyalty-stage { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
@@ -70,7 +90,8 @@
       <div id="tab-wallet" style="display: none;">
         <h2>Tarjeta Cliente Frecuente</h2>
         <p style="color:#666; margin-top:10px;">Tu tarjeta se sincroniza con tus visitas y beneficios del Club Ziresa.</p>
-        <div class="wallet-card" id="wallet-card" style="margin-top:20px;">
+        <div class="loyalty-stage">
+        <div class="wallet-card interactive-wallet" id="wallet-card">
           <div class="wallet-top">
             <div>
               <div class="wallet-brand">Ziresa</div>
@@ -82,6 +103,10 @@
             <div class="wallet-label">Nombre de cliente</div>
             <h3 class="wallet-client-name" id="wallet-name">...</h3>
           </div>
+          <div class="wallet-level-row">
+            <div class="wallet-level-pill" id="wallet-level">Nivel Nueva</div>
+            <div class="wallet-hint" id="wallet-next-hint">Toca un sello para ver tu avance</div>
+          </div>
           <div class="wallet-metrics">
             <div class="wallet-metric"><span class="wallet-label">Visita</span><strong id="wallet-visits">0</strong></div>
             <div class="wallet-metric"><span class="wallet-label">Score</span><strong id="wallet-score">0</strong></div>
@@ -92,11 +117,25 @@
             <div class="wallet-progress"><span id="wallet-progress-bar"></span></div>
           </div>
           <div class="wallet-stamps" id="wallet-stamps"></div>
+          <div class="wallet-stamp-detail" id="wallet-stamp-detail">Cada cita completada suma un sello. En la visita 5 ganas 5% OFF y en la visita 10 ganas 10% OFF.</div>
           <div class="wallet-actions">
             <a class="btn btn-primary" href="index.html">Reservar siguiente cita</a>
             <a class="btn btn-outline" href="api/wallet/pass.php" download>Descargar Wallet</a>
             <a class="btn btn-outline" href="api/wallet/pass.php?format=json" download>Exportar JSON</a>
           </div>
+        </div>
+        <div class="loyalty-side">
+          <div class="reward-card">
+            <h4>Recompensas</h4>
+            <p>Los descuentos se desbloquean automaticamente cuando admin o staff completan tu cita.</p>
+            <div class="reward-list" id="wallet-rewards"></div>
+          </div>
+          <div class="visit-card">
+            <h4>Ultimas visitas</h4>
+            <p>Tu historial se actualiza cuando la cita queda completada.</p>
+            <div class="visit-list" id="wallet-visits-list"></div>
+          </div>
+        </div>
         </div>
       </div>
 
@@ -257,7 +296,7 @@
           : visits >= 5
             ? 'Visita 5: tienes 5% de descuento activo.'
             : `Te faltan ${Math.max(0, 5 - visits)} visitas para el primer beneficio.`;
-        renderWallet(wallet, data.client);
+        renderWallet(wallet, data.client, data.recent_visits || []);
 
         /* ANTIGRAVITY UPGRADE: Gallery with skeleton placeholders */
         const gallery = data.gallery || [];
@@ -275,7 +314,7 @@
       }
     }
 
-    function renderWallet(wallet, client) {
+    function renderWallet(wallet, client, recentVisits) {
       const visits = Number(wallet.visits || client.visits || 0);
       const discount = Number(wallet.discount_percent || 0);
       document.getElementById('wallet-name').textContent = wallet.name || client.name || 'Clienta Ziresa';
@@ -283,16 +322,78 @@
       document.getElementById('wallet-score').textContent = wallet.score || 0;
       document.getElementById('wallet-discount').textContent = `${discount}%`;
       document.getElementById('wallet-benefit').textContent = wallet.benefit_label || 'Club Ziresa';
+      document.getElementById('wallet-level').textContent = `Nivel ${wallet.level || 'Nueva'}`;
+      document.getElementById('wallet-next-hint').textContent = wallet.visits_to_next_goal > 0
+        ? `Faltan ${wallet.visits_to_next_goal} visita(s) para visita ${wallet.next_goal}`
+        : 'Todas las metas base estan activas';
       document.getElementById('wallet-progress-label').textContent = wallet.visits_to_next_goal > 0
         ? `Te faltan ${wallet.visits_to_next_goal} visita(s) para tu siguiente meta`
         : 'Meta activa desbloqueada';
       document.getElementById('wallet-progress-bar').style.width = `${wallet.progress_percent || 0}%`;
       const stamps = wallet.stamps || [];
       document.getElementById('wallet-stamps').innerHTML = stamps.map(stamp => `
-        <div class="wallet-stamp ${stamp.reached ? 'reached' : ''}">
+        <button type="button" class="wallet-stamp ${stamp.reached ? 'reached' : ''} ${stamp.reward ? 'reward' : ''}" onclick="showStampDetail(${Number(stamp.number || 0)}, ${stamp.reached ? 'true' : 'false'})">
           <span>${escapeHTML(stamp.emoji || '♡')}</span><b>${Number(stamp.number || 0)}</b>
+        </button>
+      `).join('');
+      renderRewards(wallet.rewards || []);
+      renderVisitHistory(recentVisits || [], visits);
+      showStampDetail(Math.min(Math.max(visits, 1), 10), visits > 0);
+    }
+
+    function showStampDetail(number, reached) {
+      document.querySelectorAll('.wallet-stamp').forEach((stamp, index) => {
+        stamp.classList.toggle('active', index + 1 === number);
+      });
+      const detail = document.getElementById('wallet-stamp-detail');
+      if(!detail) return;
+      if(reached) {
+        detail.textContent = number === 5
+          ? 'Visita 5 desbloqueada: tienes 5% OFF disponible en Club Ziresa.'
+          : number === 10
+            ? 'Visita 10 desbloqueada: tienes 10% OFF y nivel VIP activo.'
+            : `Visita ${number}: sello registrado por una cita completada.`;
+      } else {
+        detail.textContent = number === 5
+          ? 'Meta visita 5: al completarla ganas 5% OFF.'
+          : number === 10
+            ? 'Meta visita 10: al completarla ganas 10% OFF.'
+            : `Visita ${number}: se activa cuando completes esa visita.`;
+      }
+    }
+
+    function renderRewards(rewards) {
+      const box = document.getElementById('wallet-rewards');
+      if(!box) return;
+      box.innerHTML = rewards.map(reward => `
+        <div class="reward-row ${reward.unlocked ? 'unlocked' : ''}">
+          <div>
+            <strong>Visita ${Number(reward.visits_required || 0)}</strong>
+            <span>${Number(reward.discount_percent || 0)}% de descuento</span>
+          </div>
+          <div class="reward-badge">${reward.unlocked ? 'Activo' : 'Pendiente'}</div>
         </div>
       `).join('');
+    }
+
+    function renderVisitHistory(visits, totalVisits) {
+      const box = document.getElementById('wallet-visits-list');
+      if(!box) return;
+      if(!visits.length) {
+        box.innerHTML = '<div class="visit-row"><span>Aun no hay visitas completadas.</span><strong>0</strong></div>';
+        return;
+      }
+      box.innerHTML = visits.map((visit, index) => {
+        const services = (visit.services || []).join(', ') || 'Servicio Ziresa';
+        const visitNumber = Math.max(1, Number(totalVisits || visits.length) - index);
+        return `<div class="visit-row">
+          <div>
+            <strong>Visita ${visitNumber}</strong>
+            <span>${escapeHTML(visit.date || '')} · ${escapeHTML(services)}</span>
+          </div>
+          <strong>$${Number(visit.price || 0).toLocaleString('es-MX')}</strong>
+        </div>`;
+      }).join('');
     }
 
     loadClientData();
